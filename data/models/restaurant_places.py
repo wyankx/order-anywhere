@@ -10,9 +10,9 @@ class RestaurantPlace(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
-    name = sqlalchemy.Column()
-    latitude = sqlalchemy.Column()
-    longitude = sqlalchemy.Column()
+    name = sqlalchemy.Column(sqlalchemy.String)
+    latitude = sqlalchemy.Column(sqlalchemy.Float)
+    longitude = sqlalchemy.Column(sqlalchemy.Float)
 
-    restaurant_id = sqlalchemy.Column()
-    restaurant = sqlalchemy.Column()
+    restaurant_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('restaurants.id'))
+    restaurant = orm.relation('Restaurant')

@@ -10,8 +10,8 @@ class OrderItem(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
-    menu_item_id = sqlalchemy.Column()
-    menu_item = sqlalchemy.Column()
+    menu_item_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menu_items.id'))
+    menu_item = orm.relation('MenuItem')
 
-    order_id = sqlalchemy.Column()
-    order = sqlalchemy.Column()
+    order_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('orders.id'))
+    order = orm.relation('Order')

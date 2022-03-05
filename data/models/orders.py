@@ -10,13 +10,13 @@ class Order(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
-    price = sqlalchemy.Column()
-    is_finished = sqlalchemy.Column()
+    price = sqlalchemy.Column(sqlalchemy.Integer)
+    is_finished = sqlalchemy.Column(sqlalchemy.Boolean)
 
-    restaurant_id = sqlalchemy.Column()
-    restaurant = sqlalchemy.Column()
+    restaurant_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('restaurants.id'))
+    restaurant = orm.relation('Restaurant')
 
-    user_id = sqlalchemy.Column()
-    user = sqlalchemy.Column()
+    user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
+    user = orm.relation('User')
 
-    order_items = sqlalchemy.Column()
+    order_items = orm.relation('OrderItem', back_populates='order')

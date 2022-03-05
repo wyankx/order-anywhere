@@ -11,12 +11,12 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    register_date = sqlalchemy.Column()
+    register_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
 
-    name = sqlalchemy.Column()
-    surname = sqlalchemy.Column()
+    name = sqlalchemy.Column(sqlalchemy.String)
+    surname = sqlalchemy.Column(sqlalchemy.String)
 
-    login = sqlalchemy.Column()
-    password = sqlalchemy.Column()
+    login = sqlalchemy.Column(sqlalchemy.String, index=True)
+    password = sqlalchemy.Column(sqlalchemy.String)
 
-    orders = sqlalchemy.Column()
+    orders = orm.relation('Order', back_populates='user')

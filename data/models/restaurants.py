@@ -11,15 +11,15 @@ class Restaurant(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'restaurants'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    register_date = sqlalchemy.Column()
+    register_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
 
-    title = sqlalchemy.Column()
+    title = sqlalchemy.Column(sqlalchemy.String)
 
-    login = sqlalchemy.Column()
-    password = sqlalchemy.Column()
+    login = sqlalchemy.Column(sqlalchemy.String, index=True)
+    password = sqlalchemy.Column(sqlalchemy.String)
 
-    menu_id = sqlalchemy.Column()
-    menu = sqlalchemy.Column()
+    menu_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menus.id'))
+    menu = orm.relation('Menu', back_populates='restaurant')
 
-    places = sqlalchemy.Column()
-    orders = sqlalchemy.Column()
+    places = orm.relation('RestaurantPlace', back_populates='restaurant')
+    orders = orm.relation('Order', back_populates='restaurant')
