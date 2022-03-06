@@ -17,7 +17,7 @@ config = context.config
 
 # here we allow ourselves to pass interpolation vars to alembic.ini
 # from the host env
-config.set_main_option('sqlalchemy.url', os.environ.get('DATABASE_URL'))
+config.set_main_option('sqlalchemy.url', 'postgresql' + os.environ.get('DATABASE_URL')[8:])
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
