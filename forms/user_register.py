@@ -9,4 +9,4 @@ class UserRegisterForm(FlaskForm):
     login = StringField('Логин', validators=[DataRequired()], render_kw={'class': 'form-control'})
     password = PasswordField('Пароль', validators=[DataRequired()], render_kw={'class': 'form-control'})
     repeat_password = PasswordField('Повторите пароль', validators=[DataRequired()], render_kw={'class': 'form-control'})
-    submit = SubmitField('Войти', render_kw={'class': 'btn btn-primary'})
+    submit = SubmitField('Зарегистрироваться', render_kw={'class': 'btn btn-primary'})

@@ -51,7 +51,7 @@ def load_user(user_id):
 
 
 @app.route('/user_register', methods=['POST', 'GET'])
-def user_login():
+def user_register():
     form = UserRegisterForm()
     if form.validate_on_submit():
         if form.password.data != form.repeat_password.data:
@@ -73,7 +73,7 @@ def user_login():
 
 
 @app.route('/restaurant_register', methods=['POST', 'GET'])
-def restaurant_login():
+def restaurant_register():
     pass
 
 
