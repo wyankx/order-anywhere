@@ -5,6 +5,20 @@ from sqlalchemy import pool
 
 from alembic import context
 
+import os
+from dotenv import load_dotenv
+dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+
+# this is the Alembic Config object, which provides
+# access to the values within the .ini file in use.
+config = context.config
+
+# here we allow ourselves to pass interpolation vars to alembic.ini
+# from the host env
+config.set_main_option('sqlalchemy.url', os.environ.get('DATABASE_URL'))
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

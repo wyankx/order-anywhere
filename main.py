@@ -90,6 +90,6 @@ def main_page():
 
 
 if __name__ == '__main__':
-    db_session.global_init('db/data.db')
-    port = int(os.environ.get('PORT', 4000))
+    db_session.global_init(os.environ.get('DATABASE_URL'))
+    port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port)
