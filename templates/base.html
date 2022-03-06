@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     {% block bootstrap_css %}
@@ -7,7 +7,7 @@
     {% endblock %}
     <link href="/static/css/base.css" rel="stylesheet">
     {% block css %}{% endblock %}
-    <title>{% block title %}Title{% endblock %}</title>
+    <title>{% block title %}{{ title }}{% endblock %}</title>
 </head>
 <body>
 {% block navbar %}

@@ -4,3 +4,4 @@ flask-login==0.5.0
 flask-wtf==1.0.0
 alembic==1.7.6
 SQLAlchemy-serializer==1.4.1
+python-dotenv==0.19.2

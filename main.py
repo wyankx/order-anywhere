@@ -1,10 +1,22 @@
 import os
 import datetime
 
-from flask import Flask, render_template, redirect
-from flask_login import LoginManager, login_required, logout_user
+from flask import Flask, render_template, redirect, abort
+from flask_login import LoginManager, login_required, logout_user, current_user
 
 from data import db_session
+
+from forms.user_register import UserRegisterForm
+
+from data.models.users import User
+
+
+# Will not work on Heroku, but needed for tests
+from dotenv import load_dotenv
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
@@ -17,10 +29,52 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+def abort_if_restaurant():
+    if current_user.__class__.__name__ == 'Restaurant':
+        abort(403)
+
+
+def abort_if_user():
+    if current_user.__class__.__name__ == 'User':
+        abort(403)
+
+
+@app.errorhandler(403)
+def forbidden_error():
+    return render_template('bad_account_type.html')
+
+
 @login_manager.user_loader
 def load_user(user_id):
     db_sess = db_session.create_session()
     return db_sess.query(User).get(user_id)
+
+
+@app.route('/user_register', methods=['POST', 'GET'])
+def user_login():
+    form = UserRegisterForm()
+    if form.validate_on_submit():
+        if form.password.data != form.repeat_password.data:
+            form.repeat_password.errors.append('Пароли не совпадают')
+            return render_template('user_register.html', title='Регистрация пользователя', form=form)
+        db_sess = db_session.create_session()
+        if db_sess.query(User).filter(User.login == form.login.data).first():
+            form.login.errors.append('Этот логин занят')
+            return render_template('user_register.html', title='Регистрация пользователя', form=form)
+        user = User(
+            name=form.name.data,
+            surname=form.surname.data,
+            login=form.login.data
+        )
+        user.set_password(form.password.data)
+        db_sess.add(user)
+        db_sess.commit()
+    return render_template('user_register.html', title='Регистрация пользователя', form=form)
+
+
+@app.route('/restaurant_register', methods=['POST', 'GET'])
+def restaurant_login():
+    pass
 
 
 @app.route('/logout')
@@ -36,6 +90,6 @@ def main_page():
 
 
 if __name__ == '__main__':
-    db_session.global_init("db/data.db")
-    port = int(os.environ.get('PORT', 5000))
+    db_session.global_init('db/data.db')
+    port = int(os.environ.get('PORT', 4000))
     app.run(host='0.0.0.0', port=port)
