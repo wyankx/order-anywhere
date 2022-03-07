@@ -7,8 +7,11 @@ from flask_login import LoginManager, login_required, logout_user, current_user
 from data import db_session
 
 from forms.user_register import UserRegisterForm
+from forms.restaurant_register import RestaurantRegisterForm
 
 from data.models.users import User
+from data.models.restaurants import Restaurant
+from data.models.menus import Menu
 
 
 # Will not work on Heroku, but needed for tests
@@ -74,7 +77,25 @@ def user_register():
 
 @app.route('/restaurant_register', methods=['POST', 'GET'])
 def restaurant_register():
-    pass
+    form = RestaurantRegisterForm()
+    if form.validate_on_submit():
+        if form.password.data != form.repeat_password.data:
+            form.repeat_password.errors.append('Пароли не совпадают')
+            return render_template('restaurant_register.html', title='Регистрация ресторана', form=form)
+        db_sess = db_session.create_session()
+        if db_sess.query(User).filter(User.login == form.login.data).first():
+            form.login.errors.append('Этот логин занят')
+            return render_template('restaurant_register.html', title='Регистрация ресторана', form=form)
+        restaurant = Restaurant(
+            title=form.title.data,
+            login=form.login.data
+        )
+        restaurant.set_password(form.password.data)
+        menu = Menu()
+        db_sess.add(menu)
+        menu.restaurant.append(restaurant)
+        db_sess.commit()
+    return render_template('restaurant_register.html', title='Регистрация ресторана', form=form)
 
 
 @app.route('/logout')
@@ -86,7 +107,7 @@ def logout():
 
 @app.route('/')
 def main_page():
-    return render_template('main_page.html', title='order anywhere')
+    return render_template('main_page.html', title='Order anywhere')
 
 
 if __name__ == '__main__':

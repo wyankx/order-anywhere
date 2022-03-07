@@ -13,5 +13,8 @@ class MenuItem(SqlAlchemyBase, UserMixin, SerializerMixin):
     name = sqlalchemy.Column(sqlalchemy.String)
     price = sqlalchemy.Column(sqlalchemy.Integer)
 
+    category_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('categories.id'))
+    category = orm.relation('Category')
+
     menu_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menus.id'))
     menu = orm.relation('Menu')

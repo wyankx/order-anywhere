@@ -10,6 +10,7 @@ class Menu(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
-    restaurant = orm.relation('Restaurant')
+    restaurant = orm.relation('Restaurant', back_populates='menu')
 
+    categories = orm.relation('Category', back_populates='menu')
     items = orm.relation('MenuItem', back_populates='menu')
