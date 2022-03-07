@@ -13,6 +13,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     register_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
+    profile_id = sqlalchemy.Column(sqlalchemy.Integer)
 
     name = sqlalchemy.Column(sqlalchemy.String)
     surname = sqlalchemy.Column(sqlalchemy.String)
