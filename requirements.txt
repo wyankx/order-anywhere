@@ -2,3 +2,10 @@ flask==2.0.3
 sqlalchemy==1.4.31
 flask-login==0.5.0
 flask-wtf==1.0.0
+alembic==1.7.6
+SQLAlchemy-serializer==1.4.1
+python-dotenv==0.19.2
+psycopg2-binary==2.9.3
+Werkzeug==2.0.2
+WTForms==3.0.1
+config==0.5.1
