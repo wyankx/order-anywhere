@@ -5,3 +5,4 @@ from .models import orders
 from .models import restaurant_places
 from .models import restaurants
 from .models import users
+from .models import categories
