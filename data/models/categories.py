@@ -15,4 +15,4 @@ class Category(SqlAlchemyBase, UserMixin, SerializerMixin):
     menu = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menus.id'))
     menu = orm.relation('Menu')
 
-    menu_items = orm.relation('MenuItem', back_populate='category')
+    menu_items = orm.relation('MenuItem', back_populates='category')
