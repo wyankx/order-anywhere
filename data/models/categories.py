@@ -12,7 +12,7 @@ class Category(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     title = sqlalchemy.Column(sqlalchemy.String)
 
-    menu = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menus.id'))
+    menu_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menus.id'))
     menu = orm.relation('Menu')
 
     menu_items = orm.relation('MenuItem', back_populates='category')
