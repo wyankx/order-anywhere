@@ -1,5 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+    {% if current_user.is_authenticated %}
+        {% if current_user.__class__.__name__ == 'User' %}
+        {% elif current_user.__class__.__name__ == 'Restaurant' %}
+        {% endif %}
+    {% else %}
+    {% endif %}
 {% endblock %}

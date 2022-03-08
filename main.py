@@ -34,6 +34,7 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 
+# Page for one profile type
 def abort_if_restaurant():
     if current_user.__class__.__name__ == 'Restaurant':
         abort(403)
@@ -44,9 +45,15 @@ def abort_if_user():
         abort(403)
 
 
+# Error handlers
 @app.errorhandler(403)
 def forbidden_error():
     return render_template('bad_account_type.html')
+
+
+@app.errorhandler(404)
+def not_found():
+    return render_template('not_found.html')
 
 
 # User load
@@ -86,7 +93,6 @@ def user_register():
         user.set_password(form.password.data)
         profile = ProfileType(
             profile_type=user.__class__.__name__,
-            account_id=user.id
         )
         db_sess.add(user)
         db_sess.add(profile)
@@ -94,6 +100,8 @@ def user_register():
         profile.account_id = user.id
         user.profile_id = profile.id
         db_sess.commit()
+        login_user(profile, remember=True)
+        return redirect('/')
     return render_template('form.html', title='Регистрация пользователя', form=form, additional_link=additional_link)
 
 
@@ -116,17 +124,20 @@ def restaurant_register():
             title=form.title.data,
             login=form.login.data
         )
+        restaurant.set_password(form.password.data)
         profile = ProfileType(
             profile_type=restaurant.__class__.__name__,
-            account_id=restaurant.id
         )
-        restaurant.profile_id = profile.id
-        restaurant.set_password(form.password.data)
         menu = Menu()
+        menu.restaurant.append(restaurant)
         db_sess.add(menu)
         db_sess.add(profile)
-        menu.restaurant.append(restaurant)
         db_sess.commit()
+        profile.account_id = restaurant.id
+        restaurant.profile_id = profile.id
+        db_sess.commit()
+        login_user(profile, remember=True)
+        return redirect('/')
     return render_template('form.html', title='Регистрация ресторана', additional_link=additional_link, form=form)
 
 
@@ -180,6 +191,45 @@ def logout():
 @app.route('/')
 def main_page():
     return render_template('main_page.html', title='Order anywhere')
+
+
+# Settings page
+@app.route('/settings')
+@login_required
+def settings_redirect():
+    if current_user.__class__.__name__ == 'Restaurant':
+        return redirect('/settings/organisations')
+    if current_user.__class__.__name__ == 'User':
+        pass
+
+
+@app.route('/settings/<string:current_setting>')
+@login_required
+def settings(current_setting):
+    if current_user.__class__.__name__ == 'Restaurant':
+        # Settings dict which have next structure [setting -> part]
+        setting_names = {'organisations': 'Организации'}
+        settings = {
+            'organisations': [
+                f'''<h1>Изменение организаций</h1>
+                <a class="btn btn-outline-primary" href="/organisations_add">Добавить</a><br>
+                {'<br>'.join([f'<div class="card">'
+                              f'<h3>{place}</h3>'
+                              f'<div class="d-flex">'
+                              f'<a class="btn btn-outline-primary" href="/organisation_edit/{place.id}">Изменить</a>'
+                              f'<a class="btn btn-outline-danger" href="/organisation_delete/{place.id}">Удалить</a>'
+                              f'</div>'
+                              f'</div>'
+                              for place in current_user.places])}'''
+            ]
+        }
+    elif current_user.__class__.__name__ == 'User':
+        # Settings dict which have next structure [setting -> html markup]
+        setting_names = {}
+        settings = {}
+    if current_setting not in setting_names.keys():
+        abort(404)
+    return render_template('settings.html', current_setting=current_setting, settings=settings, setting_names=setting_names)
 
 
 if __name__ == '__main__':

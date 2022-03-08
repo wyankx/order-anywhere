@@ -18,7 +18,10 @@
             </a>
             <div class="d-flex">
                 {% if current_user.is_authenticated %}
-                    <a class="btn btn-outline-danger" href="/logout">Выйти</a>
+                    <p>
+                        <a class="btn btn-outline-primary" href="/settings">Настройки</a>
+                        <a class="btn btn-outline-danger" href="/logout">Выйти</a>
+                    </p>
                 {% else %}
                     <p>
                         <a class="btn btn-outline-secondary" href="/user_login">Авторизация</a>
