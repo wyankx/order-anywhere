@@ -214,8 +214,8 @@ def settings_redirect():
 @login_required
 def settings(current_setting):
     if current_user.__class__.__name__ == 'Restaurant':
-        # Settings dict which have next structure [setting -> part]
-        setting_names = {'organisations': 'Организации'}
+        # Settings dict which have next structure [setting -> html markup]
+        setting_names = {'organisations': 'Организации', 'menu': 'Меню'}
         settings = {
             'organisations': [
                 f'''<h1>Изменение организаций</h1>
@@ -236,6 +236,27 @@ def settings(current_setting):
                               f'</div>'
                               f'</div>'
                               for place in current_user.places])}'''
+            ],
+            'menu': [
+                f'''<h1>Изменение меню</h1>
+                <a class="btn btn-outline-primary" href="/menu_items_add">Добавить</a><br><br>
+                {'<br>'.join([f'<div class="card" style="padding: 10px;">'
+                              f'<div class="container-fluid d-flex" style="justify-content: space-between; align-items: center;">'
+                              f'<div>'
+                              f'<h3>{menu_item.name}</h3>'
+                              f'</div>'
+                              f'<div class="d-flex" style="align-items: center;">'
+                              f'<div style="margin: 0;">'
+                              f'<p style="margin: 0;">'
+                              f'<a class="btn btn-outline-primary" href="/menu_item_edit/{menu_item.id}">Изменить</a>'
+                              f'<a class="btn btn-outline-danger" href="/menu_item_delete/{menu_item.id}">Удалить</a>'
+                              f'</p>'
+                              f'</div>'
+                              f'</div>'
+                              f'</div>'
+                              f'<img src="/static/menu_item_images/{menu_item.item_image}">'
+                              f'</div>'
+                              for menu_item in current_user.menu.items])}'''
             ]
         }
     elif current_user.__class__.__name__ == 'User':
@@ -280,7 +301,7 @@ def organisation_edit(place_id):
         if db_sess.query(RestaurantPlace).filter(RestaurantPlace.name == form.name.data, RestaurantPlace.restaurant == current_user).first():
             form.name.errors.append('Организация с таким названием уже существует')
             return render_template('form.html', title='Изменение организации', form=form)
-        place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id)
+        place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id).first()
         place.name = form.name.data
         db_sess.commit()
         return redirect('/settings/organisations')
