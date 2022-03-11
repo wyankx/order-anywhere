@@ -9,3 +9,4 @@ psycopg2-binary==2.9.3
 Werkzeug==2.0.2
 WTForms==3.0.1
 config==0.5.1
+flask_restful==0.3.9
