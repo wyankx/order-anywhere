@@ -1,4 +1,4 @@
-from main import abort_if_user
+from operations import abort_if_user
 
 from flask import Blueprint, redirect, render_template, abort
 from flask_login import login_required, current_user

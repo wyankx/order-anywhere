@@ -7,12 +7,14 @@ from flask_login import LoginManager, current_user
 from blueprints import settings
 from blueprints import accounts
 from blueprints import organisations
+from blueprints import menus
 
 from data import db_session
 
 from data.models.profile_types import ProfileType
 from data.models.users import User
 from data.models.restaurants import Restaurant
+from data.models.menu_items import MenuItem
 
 
 # Will not work on Heroku, but needed for tests
@@ -31,17 +33,6 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-
-# Page for one profile type
-def abort_if_restaurant():
-    if current_user.__class__.__name__ == 'Restaurant':
-        abort(403)
-
-
-def abort_if_user():
-    if current_user.__class__.__name__ == 'User':
-        abort(403)
 
 
 # Error handlers
@@ -85,6 +76,7 @@ if __name__ == '__main__':
     app.register_blueprint(accounts.blueprint)
     app.register_blueprint(settings.blueprint)
     app.register_blueprint(organisations.blueprint)
+    app.register_blueprint(menus.blueprint)
 
     port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port)

@@ -45,6 +45,24 @@ def settings(current_setting):
                               for place in current_user.places])}'''
             ],
             'menu': [
+                f'''<h1>Изменение категорий</h1>
+                <a class="btn btn-outline-primary" href="/categories_add">Добавить</a><br><br>
+                {'<br>'.join([f'<div class="card" style="padding: 10px;">'
+                              f'<div class="container-fluid d-flex" style="justify-content: space-between; align-items: center;">'
+                              f'<div>'
+                              f'<h3>{category.name}</h3>'
+                              f'</div>'
+                              f'<div class="d-flex" style="align-items: center;">'
+                              f'<div style="margin: 0;">'
+                              f'<p style="margin: 0;">'
+                              f'<a class="btn btn-outline-primary" href="/category_edit/{category.id}">Изменить</a>'
+                              f'<a class="btn btn-outline-danger" href="/category_delete/{category.id}">Удалить</a>'
+                              f'</p>'
+                              f'</div>'
+                              f'</div>'
+                              f'</div>'
+                              f'</div>'
+                              for category in current_user.menu.categories])}''',
                 f'''<h1>Изменение меню</h1>
                 <a class="btn btn-outline-primary" href="/menu_items_add">Добавить</a><br><br>
                 {'<br>'.join([f'<div class="card" style="padding: 10px;">'
