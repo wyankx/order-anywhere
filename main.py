@@ -1,7 +1,7 @@
 import os
 import datetime
 
-from flask import Flask, render_template, redirect, abort
+from flask import Flask, render_template, redirect, abort, make_response
 from flask_login import LoginManager, login_required, logout_user, current_user, login_user
 
 from data import db_session
@@ -48,14 +48,19 @@ def abort_if_user():
 
 
 # Error handlers
+@app.errorhandler(401)
+def forbidden_error(error):
+    return make_response(render_template('unauthorized.html', title='неправильный тип аккаунта'), 403)
+
+
 @app.errorhandler(403)
-def forbidden_error():
-    return render_template('bad_account_type.html', title='неправильный тип аккаунта')
+def forbidden_error(error):
+    return make_response(render_template('bad_account_type.html', title='неправильный тип аккаунта'), 403)
 
 
 @app.errorhandler(404)
-def not_found():
-    return render_template('not_found.html', title='Страница не найдена')
+def not_found(error):
+    return make_response(render_template('not_found.html', title='Страница не найдена'), 404)
 
 
 # User load
@@ -155,7 +160,7 @@ def user_login():
         db_sess = db_session.create_session()
         user = db_sess.query(User).filter(User.login == form.login.data).first()
         if user and user.check_password(form.password.data):
-            profile = db_sess.query(ProfileType).filter(ProfileType.account_id == user.profile_id).first()
+            profile = db_sess.query(ProfileType).filter(ProfileType.id == user.profile_id).first()
             login_user(profile, remember=form.remember_me.data)
             return redirect("/")
         errors = ['Неправильный логин или пароль']
@@ -174,7 +179,7 @@ def restaurant_login():
         db_sess = db_session.create_session()
         restaurant = db_sess.query(Restaurant).filter(Restaurant.login == form.login.data).first()
         if restaurant and restaurant.check_password(form.password.data):
-            profile = db_sess.query(ProfileType).filter(ProfileType.account_id == restaurant.profile_id).first()
+            profile = db_sess.query(ProfileType).filter(ProfileType.id == restaurant.profile_id).first()
             login_user(profile, remember=form.remember_me.data)
             return redirect("/")
         return render_template('form.html', title='Авторизация ресторана', form=form, additional_link=additional_link, errors=['Неправильный логин или пароль'])
@@ -202,7 +207,7 @@ def settings_redirect():
     if current_user.__class__.__name__ == 'Restaurant':
         return redirect('/settings/organisations')
     if current_user.__class__.__name__ == 'User':
-        pass
+        return redirect('/')
 
 
 @app.route('/settings/<string:current_setting>')
@@ -261,6 +266,37 @@ def organisations_add():
         db_sess.commit()
         return redirect('/settings/organisations')
     return render_template('form.html', title='Создание организации', form=form)
+
+
+@app.route('/organisation_edit/<int:place_id>', methods=['GET', 'POST'])
+@login_required
+def organisation_edit(place_id):
+    abort_if_user()
+    db_sess = db_session.create_session()
+    if not db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id):
+        abort(404)
+    form = OrganisationForm()
+    if form.validate_on_submit():
+        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.name == form.name.data, RestaurantPlace.restaurant == current_user).first():
+            form.name.errors.append('Организация с таким названием уже существует')
+            return render_template('form.html', title='Изменение организации', form=form)
+        place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id)
+        place.name = form.name.data
+        db_sess.commit()
+        return redirect('/settings/organisations')
+    return render_template('form.html', title='Изменение организации', form=form)
+
+
+@app.route('/organisation_delete/<int:place_id>')
+@login_required
+def organisation_delete(place_id):
+    abort_if_user()
+    db_sess = db_session.create_session()
+    if not db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id):
+        abort(404)
+    db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id).delete()
+    db_sess.commit()
+    return redirect('/settings/organisations')
 
 
 if __name__ == '__main__':
