@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div style="margin: 10vmin;">
+        <nav class="nav nav-pills nav-fill" style="width: min-content; margin: auto;">
+            {% for setting_name in setting_names.keys() %}
+                {% if setting_name == current_setting %}
+                    <a href="{{ setting_name }}" class="nav-link active" style="width: min-content" aria-current="page">{{ setting_names[setting_name] }}</a>
+                {% else %}
+                    <a href="{{ setting_name }}" class="nav-link" style="width: min-content">{{ setting_names[setting_name] }}</a>
+                {% endif %}
+            {% endfor %}
+        </nav><br>
+        <div class="card">
+            <div class="card-body">
+                {% for html_markup in settings[current_setting] %}
+                    {{ html_markup|safe }}<hr>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

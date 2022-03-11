@@ -4,7 +4,6 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
-
 import os
 from dotenv import load_dotenv
 dotenv_path = os.path.join(os.path.dirname(__file__), '../.env')
@@ -15,16 +14,9 @@ if os.path.exists(dotenv_path):
 # access to the values within the .ini file in use.
 config = context.config
 
-# here we allow ourselves to pass interpolation vars to alembic.ini
-# from the host env
-config.set_main_option('sqlalchemy.url', 'postgresql' + os.environ.get('DATABASE_URL')[8:])
-
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
-config = context.config
-
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
+config.set_main_option('sqlalchemy.url', 'postgresql' + os.environ.get('DATABASE_URL')[8:])
 fileConfig(config.config_file_name)
 
 # add your model's MetaData object here
@@ -32,7 +24,7 @@ fileConfig(config.config_file_name)
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
 import sys
-sys.path.insert(0, '../')
+sys.path.insert(0, '')
 from data.db_session import SqlAlchemyBase
 import data.__all_models
 target_metadata = SqlAlchemyBase.metadata
