@@ -4,5 +4,5 @@ from wtforms.validators import DataRequired
 
 
 class OrganisationForm(FlaskForm):
-    name = StringField('Название', validators=[DataRequired()], render_kw={'class': 'form-control'})
+    title = StringField('Название', validators=[DataRequired()], render_kw={'class': 'form-control'})
     submit = SubmitField('Сохранить', render_kw={'class': 'btn btn-primary'})

@@ -30,7 +30,7 @@ def settings(current_setting):
                 {'<br>'.join([f'<div class="card" style="padding: 10px;">'
                               f'<div class="container-fluid d-flex" style="justify-content: space-between; align-items: center;">'
                               f'<div>'
-                              f'<h3>{place.name}</h3>'
+                              f'<h3>{place.title}</h3>'
                               f'</div>'
                               f'<div class="d-flex" style="align-items: center;">'
                               f'<div style="margin: 0;">'

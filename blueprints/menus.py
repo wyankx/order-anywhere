@@ -38,7 +38,7 @@ def menu_item_image(menu_item_id):
     return response
 
 
-# Categories
+# Categories change
 @blueprint.route('/categories_add', methods=['GET', 'POST'])
 @login_required
 def categories_add():

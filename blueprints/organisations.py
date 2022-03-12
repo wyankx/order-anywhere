@@ -25,11 +25,11 @@ def organisations_add():
     form = OrganisationForm()
     if form.validate_on_submit():
         db_sess = db_session.create_session()
-        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.name == form.name.data, RestaurantPlace.restaurant == current_user).first():
-            form.name.errors.append('Организация с таким названием уже существует')
+        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.title == form.title.data, RestaurantPlace.restaurant == current_user).first():
+            form.title.errors.append('Организация с таким названием уже существует')
             return render_template('form.html', title='Создание организации', form=form)
         place = RestaurantPlace(
-            name=form.name.data
+            title=form.title.data
         )
         restaurant = db_sess.query(Restaurant).get(current_user.id)
         restaurant.places.append(place)
@@ -43,15 +43,17 @@ def organisations_add():
 def organisation_edit(place_id):
     abort_if_user()
     db_sess = db_session.create_session()
-    if not db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id):
+    place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id).first()
+    if not place:
         abort(404)
     form = OrganisationForm()
+    form.title.data = place.title
     if form.validate_on_submit():
-        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.name == form.name.data, RestaurantPlace.restaurant == current_user).first():
-            form.name.errors.append('Организация с таким названием уже существует')
+        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.title == form.title.data, RestaurantPlace.restaurant == current_user).first():
+            form.title.errors.append('Организация с таким названием уже существует')
             return render_template('form.html', title='Изменение организации', form=form)
         place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id).first()
-        place.name = form.name.data
+        place.title = form.title.data
         db_sess.commit()
         return redirect('/settings/organisations')
     return render_template('form.html', title='Изменение организации', form=form)
