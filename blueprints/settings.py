@@ -50,7 +50,7 @@ def settings(current_setting):
                 {'<br>'.join([f'<div class="card" style="padding: 10px;">'
                               f'<div class="container-fluid d-flex" style="justify-content: space-between; align-items: center;">'
                               f'<div>'
-                              f'<h3>{category.name}</h3>'
+                              f'<h3>{category.title}</h3>'
                               f'</div>'
                               f'<div class="d-flex" style="align-items: center;">'
                               f'<div style="margin: 0;">'
@@ -65,10 +65,11 @@ def settings(current_setting):
                               for category in current_user.menu.categories])}''',
                 f'''<h1>Изменение меню</h1>
                 <a class="btn btn-outline-primary" href="/menu_items_add">Добавить</a><br><br>
-                {'<br>'.join([f'<div class="card" style="padding: 10px;">'
+                {'<br>'.join([f'<h2>{category.title}</h2><br>' + 
+                              '<br>'.join([f'<div class="card" style="padding: 10px;">'
                               f'<div class="container-fluid d-flex" style="justify-content: space-between; align-items: center;">'
                               f'<div>'
-                              f'<h3>{menu_item.name}</h3>'
+                              f'<h3>{menu_item.title}: {menu_item.price}руб.</h3>'
                               f'</div>'
                               f'<div class="d-flex" style="align-items: center;">'
                               f'<div style="margin: 0;">'
@@ -79,9 +80,9 @@ def settings(current_setting):
                               f'</div>'
                               f'</div>'
                               f'</div>'
-                              f'<img src="/static/menu_item_images/{menu_item.item_image}">'
+                              f'<img src="/menu_item_image/{menu_item.id}" style="width: 30vmin">'
                               f'</div>'
-                              for menu_item in current_user.menu.items])}'''
+                              for menu_item in category.menu_items]) for category in current_user.menu.categories])}'''
             ]
         }
     elif current_user.__class__.__name__ == 'User':

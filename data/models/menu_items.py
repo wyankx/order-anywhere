@@ -9,9 +9,9 @@ class MenuItem(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'menu_items'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    item_image = sqlalchemy.Column(sqlalchemy.String, default='no_image.png')
+    item_image = sqlalchemy.Column(sqlalchemy.LargeBinary)
 
-    name = sqlalchemy.Column(sqlalchemy.String)
+    title = sqlalchemy.Column(sqlalchemy.String)
     price = sqlalchemy.Column(sqlalchemy.Integer)
 
     category_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('categories.id'))

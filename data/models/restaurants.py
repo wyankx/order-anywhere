@@ -14,7 +14,7 @@ class Restaurant(SqlAlchemyBase, UserMixin, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     register_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     profile_id = sqlalchemy.Column(sqlalchemy.Integer)
-    profile_image = sqlalchemy.Column(sqlalchemy.String, default='no_image.png')
+    profile_image = sqlalchemy.Column(sqlalchemy.String, default='item.png')
 
     title = sqlalchemy.Column(sqlalchemy.String, index=True)
 

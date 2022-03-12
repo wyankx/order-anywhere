@@ -2,7 +2,7 @@
 
 {% block content %}
     <h1 style="text-align: center;">{{ title }}</h1>
-    <form action="" method="post" novalidate class="card" style="width: 400px; padding: 3vmin; margin: auto;">
+    <form action="" method="post" novalidate class="card" style="width: 400px; padding: 3vmin; margin: auto;" enctype="multipart/form-data">
         <div>
             {{ form.hidden_tag() }}
         </div>
