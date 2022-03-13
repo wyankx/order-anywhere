@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, abort, render_template
+from flask import Blueprint, redirect, abort, render_template, request
 from flask_login import login_required, current_user
 
 blueprint = Blueprint(
@@ -91,4 +91,4 @@ def settings(current_setting):
         settings = {}
     if current_setting not in setting_names.keys():
         abort(404)
-    return render_template('settings.html', title='Организации',  current_setting=current_setting, settings=settings, setting_names=setting_names)
+    return render_template('settings.html', title='Организации',  current_setting=current_setting, settings=settings, setting_names=setting_names, error=request.args.get('error', None))

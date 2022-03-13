@@ -2,6 +2,12 @@
 
 {% block content %}
     <div style="margin: 10vmin;">
+        {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
         <div class="btn-group d-flex" style="justify-content: center" role="group">
             {% for setting_name in setting_names.keys() %}
                 {% if setting_name == current_setting %}

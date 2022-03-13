@@ -2,7 +2,7 @@ import os
 
 from operations import abort_if_user
 
-from flask import Blueprint, redirect, render_template, request, make_response
+from flask import Blueprint, redirect, render_template, request, make_response, abort, url_for
 from flask_login import login_required, login_user, logout_user, current_user
 
 from forms.user_register import UserRegisterForm
@@ -57,6 +57,41 @@ def categories_add():
         db_sess.commit()
         return redirect('/settings/menu')
     return render_template('form.html', form=form, title='Создание категории')
+
+
+@blueprint.route('/category_edit/<int:category_id>', methods=['GET', 'POST'])
+@login_required
+def category_edit(category_id):
+    abort_if_user()
+    db_sess = db_session.create_session()
+    category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).first()
+    if not category:
+        abort(404)
+    form = CategoryForm()
+    if form.validate_on_submit():
+        if db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.title.data).first():
+            form.title.errors.append('Категория с таким именем уже существует')
+            return render_template('form.html', form=form, title='Изменение категории')
+        category.title = form.title.data
+        db_sess.commit()
+        return redirect('/settings/menu')
+    form.title.data = category.title
+    return render_template('form.html', form=form, title='Изменение категории')
+
+
+@blueprint.route('/category_delete/<int:category_id>')
+@login_required
+def category_delete(category_id):
+    abort_if_user()
+    db_sess = db_session.create_session()
+    category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).first()
+    if not category:
+        abort(404)
+    if category.menu_items:
+        return redirect(url_for('settings.settings', current_setting='menu', error='В категории остались продукты'))
+    db_sess.query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).delete()
+    db_sess.commit()
+    return redirect('/settings/menu')
 
 
 # Menu change
