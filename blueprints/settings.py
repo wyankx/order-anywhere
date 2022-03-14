@@ -80,7 +80,7 @@ def settings(current_setting):
                               f'</div>'
                               f'</div>'
                               f'</div>'
-                              f'<img src="/menu_item_image/{menu_item.id}" style="width: 30vmin">'
+                              f'<img src="/menu_item_image/{menu_item.id}" alt="Изображение продукта" style="width: 30vmin">'
                               f'</div>'
                               for menu_item in category.menu_items]) for category in current_user.menu.categories])}'''
             ]

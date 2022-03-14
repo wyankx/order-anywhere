@@ -48,7 +48,7 @@ def organisation_edit(place_id):
         abort(404)
     form = OrganisationForm()
     if form.validate_on_submit():
-        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.title == form.title.data, RestaurantPlace.restaurant == current_user).first():
+        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.title == form.title.data, RestaurantPlace.restaurant == current_user, RestaurantPlace.id != place.id).first():
             form.title.errors.append('Организация с таким названием уже существует')
             return render_template('form.html', title='Изменение организации', form=form)
         place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id).first()

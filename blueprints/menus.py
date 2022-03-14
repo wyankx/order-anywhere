@@ -69,7 +69,7 @@ def category_edit(category_id):
         abort(404)
     form = CategoryForm()
     if form.validate_on_submit():
-        if db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.title.data).first():
+        if db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.title.data, Category.id != category.id).first():
             form.title.errors.append('Категория с таким именем уже существует')
             return render_template('form.html', form=form, title='Изменение категории')
         category.title = form.title.data
@@ -121,3 +121,41 @@ def menu_items_add():
         db_sess.commit()
         return redirect('/settings/menu')
     return render_template('form.html', form=form, title='Создание продукта')
+
+
+@blueprint.route('/menu_item_edit/<int:menu_item_id>', methods=['GET', 'POST'])
+@login_required
+def menu_item_edit(menu_item_id):
+    abort_if_user()
+    db_sess = db_session.create_session()
+    menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.id == menu_item_id).first()
+    if not menu_item:
+        abort(404)
+    form = MenuItemForm()
+    if form.validate_on_submit():
+        if db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.title == form.title.data, MenuItem.id != menu_item.id).first():
+            form.title.errors.append('Продукт с таким именем уже существует')
+            return render_template('form.html', form=form, title='Изменение продукта')
+        if form.item_image.data:
+            f = request.files['item_image']
+            filename = f'menu_item_{menu_item.id}.jpg'
+            menu_item.item_image = f.read()
+        menu_item.title = form.title.data
+        menu_item.price = form.price.data
+        menu_item.category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.category.data).first()
+        db_sess.commit()
+        return redirect('/settings/menu')
+    form.title.data = menu_item.title
+    form.price.data = menu_item.price
+    form.category.data = menu_item.category.title
+    return render_template('form.html', form=form, title='Изменение продукта')
+
+
+@blueprint.route('/menu_item_delete/<int:menu_item_id>')
+@login_required
+def menu_item_delete(menu_item_id):
+    abort_if_user()
+    db_sess = db_session.create_session()
+    db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.id == menu_item_id).delete()
+    db_sess.commit()
+    return redirect('/settings/menu')
