@@ -10,6 +10,7 @@ from forms.restaurant_register import RestaurantRegisterForm
 from forms.login import LoginForm
 from forms.menu_item import MenuItemForm
 from forms.category import CategoryForm
+from forms.submit import SubmitForm
 
 from data import db_session
 
@@ -79,7 +80,7 @@ def category_edit(category_id):
     return render_template('form.html', form=form, title='Изменение категории')
 
 
-@blueprint.route('/category_delete/<int:category_id>')
+@blueprint.route('/category_delete/<int:category_id>', methods=['GET', 'POST'])
 @login_required
 def category_delete(category_id):
     abort_if_user()
@@ -89,9 +90,12 @@ def category_delete(category_id):
         abort(404)
     if category.menu_items:
         return redirect(url_for('settings.settings', current_setting='menu', error='В категории остались продукты'))
-    db_sess.query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).delete()
-    db_sess.commit()
-    return redirect('/settings/menu')
+    form = SubmitForm()
+    if form.validate_on_submit():
+        db_sess.query(Category).filter(Category.id == category_id).delete()
+        db_sess.commit()
+        return redirect('/settings/menu')
+    return render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить категорию {category.title}')
 
 
 # Menu change
@@ -102,9 +106,17 @@ def menu_items_add():
     db_sess = db_session.create_session()
     form = MenuItemForm()
     if form.validate_on_submit():
+        # Check to errors
+        nice = True
         if db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.title == form.title.data).first():
             form.title.errors.append('Продукт с таким именем уже существует')
+            nice = False
+        if not db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.category.data).first():
+            form.category.errors.append('Такой категории не существует')
+            nice = False
+        if not nice:
             return render_template('form.html', form=form, title='Создание продукта')
+
         menu = db_sess.query(Menu).get(current_user.menu_id)
         menu_item = MenuItem(
             title=form.title.data,
@@ -133,9 +145,17 @@ def menu_item_edit(menu_item_id):
         abort(404)
     form = MenuItemForm()
     if form.validate_on_submit():
-        if db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.title == form.title.data, MenuItem.id != menu_item.id).first():
+        # Check to errors
+        nice = True
+        if db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.title == form.title.data, MenuItem.id != menu_item_id).first():
             form.title.errors.append('Продукт с таким именем уже существует')
+            nice = False
+        if not db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.category.data).first():
+            form.category.errors.append('Такой категории не существует')
+            nice = False
+        if not nice:
             return render_template('form.html', form=form, title='Изменение продукта')
+
         if form.item_image.data:
             f = request.files['item_image']
             filename = f'menu_item_{menu_item.id}.jpg'
@@ -151,11 +171,17 @@ def menu_item_edit(menu_item_id):
     return render_template('form.html', form=form, title='Изменение продукта')
 
 
-@blueprint.route('/menu_item_delete/<int:menu_item_id>')
+@blueprint.route('/menu_item_delete/<int:menu_item_id>', methods=['GET', 'POST'])
 @login_required
 def menu_item_delete(menu_item_id):
     abort_if_user()
     db_sess = db_session.create_session()
-    db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.id == menu_item_id).delete()
-    db_sess.commit()
-    return redirect('/settings/menu')
+    menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.id == menu_item_id).first()
+    if not menu_item:
+        abort(404)
+    form = SubmitForm()
+    if form.validate_on_submit():
+        db_sess.query(MenuItem).filter(MenuItem.id == menu_item_id).delete()
+        db_sess.commit()
+        return redirect('/settings/menu')
+    return render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить продукт {menu_item.title}')

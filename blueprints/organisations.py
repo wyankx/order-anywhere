@@ -6,6 +6,7 @@ from flask_login import login_required, current_user
 from data import db_session
 
 from forms.organisation import OrganisationForm
+from forms.submit import SubmitForm
 
 from data.models.restaurants import Restaurant
 from data.models.restaurant_places import RestaurantPlace
@@ -48,7 +49,7 @@ def organisation_edit(place_id):
         abort(404)
     form = OrganisationForm()
     if form.validate_on_submit():
-        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.title == form.title.data, RestaurantPlace.restaurant == current_user, RestaurantPlace.id != place.id).first():
+        if db_sess.query(RestaurantPlace).filter(RestaurantPlace.title == form.title.data, RestaurantPlace.restaurant == current_user, RestaurantPlace.id != place_id).first():
             form.title.errors.append('Организация с таким названием уже существует')
             return render_template('form.html', title='Изменение организации', form=form)
         place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id).first()
@@ -59,13 +60,17 @@ def organisation_edit(place_id):
     return render_template('form.html', title='Изменение организации', form=form)
 
 
-@blueprint.route('/organisation_delete/<int:place_id>')
+@blueprint.route('/organisation_delete/<int:place_id>', methods=['GET', 'POST'])
 @login_required
 def organisation_delete(place_id):
     abort_if_user()
     db_sess = db_session.create_session()
-    if not db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id):
+    place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id).first()
+    if not place:
         abort(404)
-    db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant == current_user, RestaurantPlace.id == place_id).delete()
-    db_sess.commit()
-    return redirect('/settings/organisations')
+    form = SubmitForm()
+    if form.validate_on_submit():
+        db_sess.query(RestaurantPlace).filter(RestaurantPlace.id == place_id).delete()
+        db_sess.commit()
+        return redirect('/settings/organisations')
+    return render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить организацию {place.title}')
