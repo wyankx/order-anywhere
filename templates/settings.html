@@ -2,15 +2,21 @@
 
 {% block content %}
     <div style="margin: 10vmin;">
-        <nav class="nav nav-pills nav-fill" style="width: min-content; margin: auto;">
+        {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+        <div class="btn-group d-flex" style="justify-content: center" role="group">
             {% for setting_name in setting_names.keys() %}
                 {% if setting_name == current_setting %}
-                    <a href="{{ setting_name }}" class="nav-link active" style="width: min-content" aria-current="page">{{ setting_names[setting_name] }}</a>
+                    <a href="/settings/{{ setting_name }}" class="btn btn-primary active" aria-current="page">{{ setting_names[setting_name] }}</a>
                 {% else %}
-                    <a href="{{ setting_name }}" class="nav-link" style="width: min-content">{{ setting_names[setting_name] }}</a>
+                    <a href="/settings/{{ setting_name }}" class="btn btn-primary">{{ setting_names[setting_name] }}</a>
                 {% endif %}
             {% endfor %}
-        </nav><br>
+        </div><br><br>
         <div class="card">
             <div class="card-body">
                 {% for html_markup in settings[current_setting] %}

@@ -10,7 +10,7 @@ class RestaurantPlace(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
-    name = sqlalchemy.Column(sqlalchemy.String)
+    title = sqlalchemy.Column(sqlalchemy.String)
 
     restaurant_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('restaurants.id'))
     restaurant = orm.relation('Restaurant')

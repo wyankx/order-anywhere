@@ -2,11 +2,14 @@
 
 {% block content %}
     <h1 style="text-align: center;">{{ title }}</h1>
-    <form action="" method="post" novalidate class="card" style="width: 400px; padding: 3vmin; margin: auto;">
+    <form action="" method="post" novalidate class="card" style="width: 400px; padding: 3vmin; margin: auto;" enctype="multipart/form-data">
         <div>
             {{ form.hidden_tag() }}
         </div>
-        {% if 'errors' %}
+        {% if form_text %}
+            <h4 style="text-align: center;">{{ form_text }}</h4>
+        {% endif %}
+        {% if errors %}
             {% for error in errors %}
                 <div class="alert alert-danger" role="alert">
                     {{ error }}
