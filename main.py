@@ -6,8 +6,9 @@ from flask_login import LoginManager, current_user
 
 from blueprints import settings
 from blueprints import accounts
-from blueprints import organisations
-from blueprints import menus
+from blueprints import organisations_settings
+from blueprints import menus_settings
+from blueprints import search
 
 from data import db_session
 
@@ -75,8 +76,9 @@ if __name__ == '__main__':
 
     app.register_blueprint(accounts.blueprint)
     app.register_blueprint(settings.blueprint)
-    app.register_blueprint(organisations.blueprint)
-    app.register_blueprint(menus.blueprint)
+    app.register_blueprint(organisations_settings.blueprint)
+    app.register_blueprint(menus_settings.blueprint)
+    app.register_blueprint(search.blueprint)
 
     port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port)

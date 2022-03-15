@@ -28,11 +28,11 @@ def settings(current_setting):
                 f'''<h1>Изменение организаций</h1>
                 <a class="btn btn-outline-primary" href="/organisations_add">Добавить</a><br><br>
                 {'<br>'.join([f'<div class="card" style="padding: 10px;">'
-                              f'<div class="container-fluid d-flex" style="justify-content: space-between; align-items: center;">'
+                              f'<div class="d-flex" style="justify-content: space-between; align-items: center;">'
                               f'<div>'
                               f'<h3>{place.title}</h3>'
                               f'</div>'
-                              f'<div class="d-flex" style="align-items: center;">'
+                              f'<div>'
                               f'<div style="margin: 0;">'
                               f'<p style="margin: 0;">'
                               f'<a class="btn btn-outline-primary" href="/organisation_edit/{place.id}">Изменить</a>'
@@ -91,4 +91,4 @@ def settings(current_setting):
         settings = {}
     if current_setting not in setting_names.keys():
         abort(404)
-    return render_template('settings.html', title='Организации',  current_setting=current_setting, settings=settings, setting_names=setting_names, error=request.args.get('error', None))
+    return render_template('settings.html', title=setting_names[current_setting],  current_setting=current_setting, settings=settings, setting_names=setting_names, error=request.args.get('error', None))
