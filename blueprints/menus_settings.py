@@ -22,7 +22,7 @@ from data.models.restaurants import Restaurant
 from data.models.categories import Category
 
 blueprint = Blueprint(
-    'menus',
+    'menus_settings',
     __name__,
     template_folder='templates'
 )
@@ -128,7 +128,6 @@ def menu_items_add():
         db_sess.commit()
         if form.item_image.data:
             f = request.files['item_image']
-            filename = f'menu_item_{menu_item.id}.jpg'
             menu_item.item_image = f.read()
         db_sess.commit()
         return redirect('/settings/menu')

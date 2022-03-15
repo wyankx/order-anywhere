@@ -8,6 +8,7 @@ from blueprints import settings
 from blueprints import accounts
 from blueprints import organisations_settings
 from blueprints import menus_settings
+from blueprints import restaurant_settings
 from blueprints import search
 
 from data import db_session
@@ -79,6 +80,7 @@ if __name__ == '__main__':
     app.register_blueprint(organisations_settings.blueprint)
     app.register_blueprint(menus_settings.blueprint)
     app.register_blueprint(search.blueprint)
+    app.register_blueprint(restaurant_settings.blueprint)
 
     port = int(os.environ.get('PORT', 3000))
     app.run(host='0.0.0.0', port=port)

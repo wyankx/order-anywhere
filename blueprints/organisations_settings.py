@@ -12,7 +12,7 @@ from data.models.restaurants import Restaurant
 from data.models.restaurant_places import RestaurantPlace
 
 blueprint = Blueprint(
-    'organisations',
+    'organisations_settings',
     __name__,
     template_folder='templates'
 )

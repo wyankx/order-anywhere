@@ -1,4 +1,4 @@
-from flask import Blueprint, redirect, render_template
+from flask import Blueprint, redirect, render_template, request
 from flask_login import login_required, login_user, logout_user
 
 from forms.user_register import UserRegisterForm
@@ -27,13 +27,17 @@ def user_register():
         'label': 'Регистрация для ресторана'
     }
     if form.validate_on_submit():
+        nice = True
         if form.password.data != form.repeat_password.data:
             form.repeat_password.errors.append('Пароли не совпадают')
-            return render_template('user_register.html', title='Регистрация пользователя', form=form, additional_link=additional_link)
+            nice = False
         db_sess = db_session.create_session()
         if db_sess.query(User).filter(User.login == form.login.data).first():
             form.login.errors.append('Этот логин занят')
-            return render_template('user_register.html', title='Регистрация пользователя', form=form, additional_link=additional_link)
+            nice = False
+        if not nice:
+            return render_template('form.html', title='Регистрация пользователя', form=form, additional_link=additional_link)
+
         user = User(
             name=form.name.data,
             surname=form.surname.data,
@@ -62,13 +66,20 @@ def restaurant_register():
         'label': 'Регистрация для пользователя'
     }
     if form.validate_on_submit():
+        nice = True
         if form.password.data != form.repeat_password.data:
             form.repeat_password.errors.append('Пароли не совпадают')
-            return render_template('restaurant_register.html', title='Регистрация ресторана', form=form, additional_link=additional_link)
+            nice = False
         db_sess = db_session.create_session()
-        if db_sess.query(User).filter(User.login == form.login.data).first():
+        if db_sess.query(Restaurant).filter(Restaurant.login == form.login.data).first():
             form.login.errors.append('Этот логин занят')
-            return render_template('restaurant_register.html', title='Регистрация ресторана', form=form, additional_link=additional_link)
+            nice = False
+        if db_sess.query(Restaurant).filter(Restaurant.title == form.title.data).first():
+            form.title.errors.append('Ресторан с таким названием существует')
+            nice = False
+        if not nice:
+            return render_template('form.html', title='Регистрация ресторана', form=form, additional_link=additional_link)
+
         restaurant = Restaurant(
             title=form.title.data,
             login=form.login.data
@@ -84,6 +95,9 @@ def restaurant_register():
         db_sess.commit()
         profile.account_id = restaurant.id
         restaurant.profile_id = profile.id
+        if form.logo.data:
+            f = request.files['logo']
+            restaurant.profile_image = f.read()
         db_sess.commit()
         login_user(profile, remember=True)
         return redirect('/')
