@@ -23,7 +23,7 @@ from data.models.categories import Category
 from data.models.orders import Order
 
 blueprint = Blueprint(
-    'menus_settings',
+    'order',
     __name__,
     template_folder='templates'
 )
@@ -33,13 +33,26 @@ blueprint = Blueprint(
 def get_order(restaurant_id):
     abort_if_restaurant()
     db_sess = db_session.create_session()
-    user = db_sess.query(User).filter()
-    order = db_sess.query(Order).filter(Order.user == user, Order.restaurant.id == restaurant_id).first()
+    user = db_sess.query(User).get(current_user.id)
+    restaurant = db_sess.query(Restaurant).get(restaurant_id)
+    if not restaurant:
+        abort(404)
+    order = db_sess.query(Order).filter(Order.user == user, Order.restaurant == restaurant).first()
     if not order:
         order = Order(
             price=0,
-            restaurant_id=restaurant_id,
+            restaurant=restaurant,
             user=user
         )
+        db_sess.add(order)
         db_sess.commit()
-    return order
+    db_sess.refresh(restaurant)
+    return {'order': order, 'restaurant': restaurant, 'user': user}
+
+
+@blueprint.route('/order/<int:restaurant_id>')
+@login_required
+def order(restaurant_id):
+    abort_if_restaurant()
+    order = get_order(restaurant_id)
+    return render_template('order_page.html', order=order['order'], restaurant=order['restaurant'])
