@@ -21,6 +21,7 @@ from data.models.menu_items import MenuItem
 from data.models.restaurants import Restaurant
 from data.models.categories import Category
 from data.models.orders import Order
+from data.models.order_items import OrderItem
 
 blueprint = Blueprint(
     'order',
@@ -46,8 +47,7 @@ def get_order(restaurant_id):
         )
         db_sess.add(order)
         db_sess.commit()
-    db_sess.refresh(restaurant)
-    return {'order': order, 'restaurant': restaurant, 'user': user}
+    return {'order': order, 'restaurant': restaurant, 'user': user, 'db_sess': db_sess}
 
 
 @blueprint.route('/order/<int:restaurant_id>')
@@ -56,3 +56,23 @@ def order(restaurant_id):
     abort_if_restaurant()
     order = get_order(restaurant_id)
     return render_template('order_page.html', order=order['order'], restaurant=order['restaurant'])
+
+
+@blueprint.route('/order/<int:restaurant_id>/add_item/<int:menu_item_id>')
+@login_required
+def order_add_item(restaurant_id, menu_item_id):
+    abort_if_restaurant()
+    order = get_order(restaurant_id)
+    db_sess = order['db_sess']
+    menu_item = db_sess.query(MenuItem).filter(MenuItem.id == menu_item_id, MenuItem.menu == order['order'].restaurant.menu).first()
+    if not menu_item:
+        abort(404)
+    order_item = OrderItem(
+        count=request.args['count'],
+        menu_item=menu_item,
+        order=order['order']
+    )
+    db_sess.add(order_item)
+    order['order'].price = sum([item.menu_item.price * item.count for item in order['order'].order_items])
+    db_sess.commit()
+    return redirect(f'/order/{restaurant_id}')
