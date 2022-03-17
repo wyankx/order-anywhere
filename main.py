@@ -1,7 +1,8 @@
 import os
 import datetime
+import sqlite3
 
-from flask import Flask, render_template, abort, make_response
+from flask import Flask, render_template, abort, make_response, g
 from flask_login import LoginManager, current_user
 
 from blueprints import settings
@@ -33,6 +34,7 @@ print(f' * SECRET_KEY: {os.environ.get("SECRET_KEY")}')
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
     days=365
 )
+app.config['SQLALCHEMY_POOL_SIZE'] = 20
 
 login_manager = LoginManager()
 login_manager.init_app(app)

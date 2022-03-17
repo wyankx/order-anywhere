@@ -36,6 +36,7 @@ def user_register():
             form.login.errors.append('Этот логин занят')
             nice = False
         if not nice:
+            db_session.close_connection(db_sess)
             return render_template('form.html', title='Регистрация пользователя', form=form, additional_link=additional_link)
 
         user = User(
@@ -54,6 +55,7 @@ def user_register():
         user.profile_id = profile.id
         db_sess.commit()
         login_user(profile, remember=True)
+        db_session.close_connection(db_sess)
         return redirect('/')
     return render_template('form.html', title='Регистрация пользователя', form=form, additional_link=additional_link)
 
@@ -78,7 +80,9 @@ def restaurant_register():
             form.title.errors.append('Ресторан с таким названием существует')
             nice = False
         if not nice:
-            return render_template('form.html', title='Регистрация ресторана', form=form, additional_link=additional_link)
+            response = render_template('form.html', title='Регистрация ресторана', form=form, additional_link=additional_link)
+            db_session.close_connection(db_sess)
+            return response
 
         restaurant = Restaurant(
             title=form.title.data,
@@ -100,6 +104,7 @@ def restaurant_register():
             restaurant.profile_image = f.read()
         db_sess.commit()
         login_user(profile, remember=True)
+        db_session.close_connection(db_sess)
         return redirect('/')
     return render_template('form.html', title='Регистрация ресторана', additional_link=additional_link, form=form)
 
@@ -118,9 +123,12 @@ def user_login():
         if user and user.check_password(form.password.data):
             profile = db_sess.query(ProfileType).filter(ProfileType.id == user.profile_id).first()
             login_user(profile, remember=form.remember_me.data)
+            db_session.close_connection(db_sess)
             return redirect("/")
         errors = ['Неправильный логин или пароль']
-        return render_template('form.html', title='Авторизация пользователя', form=form, additional_link=additional_link, errors=errors)
+        response = render_template('form.html', title='Авторизация пользователя', form=form, additional_link=additional_link, errors=errors)
+        db_session.close_connection(db_sess)
+        return response
     return render_template('form.html', title='Авторизация пользователя', form=form, additional_link=additional_link)
 
 
@@ -137,7 +145,9 @@ def restaurant_login():
         if restaurant and restaurant.check_password(form.password.data):
             profile = db_sess.query(ProfileType).filter(ProfileType.id == restaurant.profile_id).first()
             login_user(profile, remember=form.remember_me.data)
+            db_session.close_connection(db_sess)
             return redirect("/")
+        db_session.close_connection(db_sess)
         return render_template('form.html', title='Авторизация ресторана', form=form, additional_link=additional_link, errors=['Неправильный логин или пароль'])
     return render_template('form.html', title='Авторизация ресторана', form=form, additional_link=additional_link)
 

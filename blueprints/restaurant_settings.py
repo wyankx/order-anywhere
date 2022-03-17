@@ -34,9 +34,11 @@ def menu_item_image(restaurant_id):
     db_sess = db_session.create_session()
     image_binary = db_sess.query(Restaurant).get(restaurant_id).profile_image
     if not image_binary:
+        db_session.close_connection(db_sess)
         return redirect('/static/no_image/profile.png')
     response = make_response(image_binary)
     response.headers.set('Content-Type', 'image/jpeg')
+    db_session.close_connection(db_sess)
     return response
 
 
@@ -50,12 +52,17 @@ def restaurant_edit():
     if form.validate_on_submit():
         if db_sess.query(Restaurant).filter(Restaurant.title == form.title.data, Restaurant.id != current_user.id).first():
             form.title.errors.append('Ресторан с таким названием существует')
-            return render_template('form.html', title='Изменение ресторана', form=form)
+            response = render_template('form.html', title='Изменение ресторана', form=form)
+            db_session.close_connection(db_sess)
+            return response
         restaurant = db_sess.query(Restaurant).get(current_user.id)
         restaurant.title = form.title.data
         if form.logo.data:
             f = request.files['logo']
             restaurant.profile_image = f.read()
         db_sess.commit()
+        db_session.close_connection(db_sess)
         return redirect('/settings/general')
-    return render_template('form.html', title='Изменение ресторана', form=form)
+    response = render_template('form.html', title='Изменение ресторана', form=form)
+    db_session.close_connection(db_sess)
+    return response

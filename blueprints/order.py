@@ -37,6 +37,7 @@ def get_order(restaurant_id):
     user = db_sess.query(User).get(current_user.id)
     restaurant = db_sess.query(Restaurant).get(restaurant_id)
     if not restaurant:
+        db_session.close_connection(db_sess)
         abort(404)
     order = db_sess.query(Order).filter(Order.user == user, Order.restaurant == restaurant).first()
     if not order:
@@ -55,7 +56,9 @@ def get_order(restaurant_id):
 def order(restaurant_id):
     abort_if_restaurant()
     order = get_order(restaurant_id)
-    return render_template('order_page.html', order=order['order'], restaurant=order['restaurant'])
+    response = render_template('order_page.html', order=order['order'], restaurant=order['restaurant'])
+    db_session.close_connection(order['db_sess'])
+    return response
 
 
 @blueprint.route('/order/<int:restaurant_id>/add_item/<int:menu_item_id>')
@@ -66,6 +69,7 @@ def order_add_item(restaurant_id, menu_item_id):
     db_sess = order['db_sess']
     menu_item = db_sess.query(MenuItem).filter(MenuItem.id == menu_item_id, MenuItem.menu == order['order'].restaurant.menu).first()
     if not menu_item:
+        db_session.close_connection(db_sess)
         abort(404)
     order_item = OrderItem(
         count=request.args['count'],
@@ -75,4 +79,5 @@ def order_add_item(restaurant_id, menu_item_id):
     db_sess.add(order_item)
     order['order'].price = sum([item.menu_item.price * item.count for item in order['order'].order_items])
     db_sess.commit()
+    db_session.close_connection(db_sess.close())
     return redirect(f'/order/{restaurant_id}')

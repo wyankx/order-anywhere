@@ -24,5 +24,7 @@ blueprint = Blueprint(
 def search():
     abort_if_restaurant()
     db_sess = db_session.create_session()
-    response = db_sess.query(Restaurant).filter(Restaurant.title.like(f'%{request.args["search"]}%')).order_by(func.length(Restaurant.title)).limit(5)
-    return render_template('search_response.html', response=list(response), title='Поиск ресторана')
+    response_list = db_sess.query(Restaurant).filter(Restaurant.title.like(f'%{request.args["search"]}%')).order_by(func.length(Restaurant.title)).limit(5)
+    response = render_template('search_response.html', response=list(response_list), title='Поиск ресторана')
+    db_session.close_connection(db_sess)
+    return response

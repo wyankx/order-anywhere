@@ -36,6 +36,7 @@ def menu_item_image(menu_item_id):
         return redirect('/static/no_image/item.png')
     response = make_response(image_binary)
     response.headers.set('Content-Type', 'image/jpeg')
+    db_session.close_connection(db_sess)
     return response
 
 
@@ -49,15 +50,20 @@ def categories_add():
     if form.validate_on_submit():
         if db_sess.query(Category).filter(Category.menu == current_user.menu, MenuItem.title == form.title.data).first():
             form.title.errors.append('Категория с таким именем уже существует')
-            return render_template('form.html', form=form, title='Создание категории')
+            response = render_template('form.html', form=form, title='Создание категории')
+            db_session.close_connection(db_sess)
+            return response
         category = Category(
             title=form.title.data
         )
         menu = db_sess.query(Menu).get(current_user.menu_id)
         menu.categories.append(category)
         db_sess.commit()
+        db_session.close_connection(db_sess)
         return redirect('/settings/menu')
-    return render_template('form.html', form=form, title='Создание категории')
+    response = render_template('form.html', form=form, title='Создание категории')
+    db_session.close_connection(db_sess)
+    return response
 
 
 @blueprint.route('/category_edit/<int:category_id>', methods=['GET', 'POST'])
@@ -67,17 +73,23 @@ def category_edit(category_id):
     db_sess = db_session.create_session()
     category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).first()
     if not category:
+        db_session.close_connection(db_sess)
         abort(404)
     form = CategoryForm()
     if form.validate_on_submit():
         if db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.title.data, Category.id != category.id).first():
             form.title.errors.append('Категория с таким именем уже существует')
-            return render_template('form.html', form=form, title='Изменение категории')
+            response = render_template('form.html', form=form, title='Изменение категории')
+            db_session.close_connection(db_sess)
+            return response
         category.title = form.title.data
         db_sess.commit()
+        db_session.close_connection(db_sess)
         return redirect('/settings/menu')
     form.title.data = category.title
-    return render_template('form.html', form=form, title='Изменение категории')
+    response = render_template('form.html', form=form, title='Изменение категории')
+    db_session.close_connection(db_sess)
+    return response
 
 
 @blueprint.route('/category_delete/<int:category_id>', methods=['GET', 'POST'])
@@ -87,15 +99,21 @@ def category_delete(category_id):
     db_sess = db_session.create_session()
     category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).first()
     if not category:
+        db_session.close_connection(db_sess)
         abort(404)
     if category.menu_items:
-        return redirect(url_for('settings.settings', current_setting='menu', error='В категории остались продукты'))
+        response = redirect(url_for('settings.settings', current_setting='menu', error='В категории остались продукты'))
+        db_session.close_connection(db_sess)
+        return response
     form = SubmitForm()
     if form.validate_on_submit():
         db_sess.query(Category).filter(Category.id == category_id).delete()
         db_sess.commit()
+        db_session.close_connection(db_sess)
         return redirect('/settings/menu')
-    return render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить категорию {category.title}')
+    response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить категорию {category.title}')
+    db_session.close_connection(db_sess)
+    return response
 
 
 # Menu change
@@ -115,7 +133,9 @@ def menu_items_add():
             form.category.errors.append('Такой категории не существует')
             nice = False
         if not nice:
-            return render_template('form.html', form=form, title='Создание продукта')
+            response = render_template('form.html', form=form, title='Создание продукта')
+            db_session.close_connection(db_sess)
+            return response
 
         menu = db_sess.query(Menu).get(current_user.menu_id)
         menu_item = MenuItem(
@@ -130,8 +150,11 @@ def menu_items_add():
             f = request.files['item_image']
             menu_item.item_image = f.read()
         db_sess.commit()
+        db_session.close_connection(db_sess)
         return redirect('/settings/menu')
-    return render_template('form.html', form=form, title='Создание продукта')
+    response = render_template('form.html', form=form, title='Создание продукта')
+    db_session.close_connection(db_sess)
+    return response
 
 
 @blueprint.route('/menu_item_edit/<int:menu_item_id>', methods=['GET', 'POST'])
@@ -141,6 +164,7 @@ def menu_item_edit(menu_item_id):
     db_sess = db_session.create_session()
     menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.id == menu_item_id).first()
     if not menu_item:
+        db_session.close_connection(db_sess)
         abort(404)
     form = MenuItemForm()
     if form.validate_on_submit():
@@ -153,7 +177,9 @@ def menu_item_edit(menu_item_id):
             form.category.errors.append('Такой категории не существует')
             nice = False
         if not nice:
-            return render_template('form.html', form=form, title='Изменение продукта')
+            response = render_template('form.html', form=form, title='Изменение продукта')
+            db_session.close_connection(db_sess)
+            return response
 
         if form.item_image.data:
             f = request.files['item_image']
@@ -163,11 +189,14 @@ def menu_item_edit(menu_item_id):
         menu_item.price = form.price.data
         menu_item.category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.category.data).first()
         db_sess.commit()
+        db_session.close_connection(db_sess)
         return redirect('/settings/menu')
     form.title.data = menu_item.title
     form.price.data = menu_item.price
     form.category.data = menu_item.category.title
-    return render_template('form.html', form=form, title='Изменение продукта')
+    response = render_template('form.html', form=form, title='Изменение продукта')
+    db_session.close_connection(db_sess)
+    return response
 
 
 @blueprint.route('/menu_item_delete/<int:menu_item_id>', methods=['GET', 'POST'])
@@ -177,10 +206,14 @@ def menu_item_delete(menu_item_id):
     db_sess = db_session.create_session()
     menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.id == menu_item_id).first()
     if not menu_item:
+        db_session.close_connection(db_sess)
         abort(404)
     form = SubmitForm()
     if form.validate_on_submit():
         db_sess.query(MenuItem).filter(MenuItem.id == menu_item_id).delete()
         db_sess.commit()
+        db_session.close_connection(db_sess)
         return redirect('/settings/menu')
-    return render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить продукт {menu_item.title}')
+    response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить продукт {menu_item.title}')
+    db_session.close_connection(db_sess)
+    return response
