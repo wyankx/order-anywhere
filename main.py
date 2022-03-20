@@ -2,9 +2,23 @@ import os
 import datetime
 import sqlite3
 
-from flask import Flask, render_template, abort, make_response, g
+from flask import Flask, render_template, abort, make_response
 from flask_login import LoginManager, current_user
+from flask_wtf import CSRFProtect
 
+from data.db_session import db_session as db_sess
+from data import db_session
+
+# Will not work on Heroku, but needed for tests
+from dotenv import load_dotenv
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
+if os.path.exists(dotenv_path):
+    load_dotenv(dotenv_path)
+
+if __name__ == '__main__':
+    db_session.global_init(os.environ.get('DATABASE_URL'))
+
+import api
 from blueprints import settings
 from blueprints import accounts
 from blueprints import organisations_settings
@@ -13,22 +27,13 @@ from blueprints import restaurant_settings
 from blueprints import search
 from blueprints import order
 
-from data import db_session
-
 from data.models.profile_types import ProfileType
 from data.models.users import User
 from data.models.restaurants import Restaurant
 from data.models.menu_items import MenuItem
 
 
-# Will not work on Heroku, but needed for tests
-from dotenv import load_dotenv
-dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
-if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
-
-
-app = Flask(__name__)
+app = api.app
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 print(f' * SECRET_KEY: {os.environ.get("SECRET_KEY")}')
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
@@ -38,6 +43,11 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 20
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+
+@app.teardown_appcontext
+def shutdown_session(exception=None):
+    from data.db_session import db_session as db_sess
 
 
 # Error handlers
@@ -59,7 +69,7 @@ def not_found(error):
 # User load
 @login_manager.user_loader
 def load_user(profile_id):
-    db_sess = db_session.create_session()
+    prifile_id = int(profile_id)
     profile = db_sess.query(ProfileType).get(profile_id)
     if not profile:
         return profile
@@ -76,8 +86,6 @@ def main_page():
 
 
 if __name__ == '__main__':
-    db_session.global_init(os.environ.get('DATABASE_URL'))
-
     app.register_blueprint(accounts.blueprint)
     app.register_blueprint(settings.blueprint)
     app.register_blueprint(organisations_settings.blueprint)

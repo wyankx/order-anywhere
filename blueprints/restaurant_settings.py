@@ -13,7 +13,7 @@ from forms.category import CategoryForm
 from forms.submit import SubmitForm
 from forms.restaurant_general_edit import RestaurantGeneralEditForm
 
-from data import db_session
+from data.db_session import db_session as db_sess
 
 from data.models.menus import Menu
 from data.models.users import User
@@ -29,31 +29,16 @@ blueprint = Blueprint(
 )
 
 
-@blueprint.route('/restaurant_image/<int:restaurant_id>')
-def menu_item_image(restaurant_id):
-    db_sess = db_session.create_session()
-    image_binary = db_sess.query(Restaurant).get(restaurant_id).profile_image
-    if not image_binary:
-        db_session.close_connection(db_sess)
-        return redirect('/static/no_image/profile.png')
-    response = make_response(image_binary)
-    response.headers.set('Content-Type', 'image/jpeg')
-    db_session.close_connection(db_sess)
-    return response
-
-
 # Restaurant edit
 @blueprint.route('/restaurant_edit', methods=['GET', 'POST'])
 @login_required
 def restaurant_edit():
     abort_if_user()
-    db_sess = db_session.create_session()
     form = RestaurantGeneralEditForm()
     if form.validate_on_submit():
         if db_sess.query(Restaurant).filter(Restaurant.title == form.title.data, Restaurant.id != current_user.id).first():
             form.title.errors.append('Ресторан с таким названием существует')
             response = render_template('form.html', title='Изменение ресторана', form=form)
-            db_session.close_connection(db_sess)
             return response
         restaurant = db_sess.query(Restaurant).get(current_user.id)
         restaurant.title = form.title.data
@@ -61,8 +46,6 @@ def restaurant_edit():
             f = request.files['logo']
             restaurant.profile_image = f.read()
         db_sess.commit()
-        db_session.close_connection(db_sess)
         return redirect('/settings/general')
     response = render_template('form.html', title='Изменение ресторана', form=form)
-    db_session.close_connection(db_sess)
     return response
