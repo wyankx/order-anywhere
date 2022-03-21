@@ -1,5 +1,6 @@
 from flask import Blueprint, redirect, abort, render_template, request
 from flask_login import login_required, current_user
+import requests
 
 from forms.restaurant_general_edit import RestaurantGeneralEditForm
 
@@ -23,12 +24,17 @@ def settings_redirect():
 @login_required
 def settings(current_setting):
     if current_user.__class__.__name__ == 'Restaurant':
-        # Settings dict which have next structure [setting -> {type, html_markup}/{type, form, form_handler_url}]
         setting_names = {'general': 'Основные', 'organisations': 'Организации', 'menu': 'Меню'}
 
         restaurant_general_edit_form = RestaurantGeneralEditForm()
         restaurant_general_edit_form.title.data = current_user.title
 
+        menu = requests.get(request.host_url + f'api/menu/{int(current_user.id)}')
+        if menu.status_code != 200:
+            abort(menu.status_code)
+        menu = menu.json()
+
+        # Settings - dict with the following structure {setting: {type, html_markup}/{type, form, form_handler_url}}
         settings = {
             'general': [
                 {
@@ -104,29 +110,29 @@ def settings(current_setting):
                     'type': 'html_markup',
                     'html_markup': f'''<h1>Изменение меню</h1>
                     <a class="btn btn-outline-primary" href="/menu_items_add">Добавить</a><br><br>
-                    {'<br>'.join([f'<h2>{category.title}</h2><br>' + 
+                    {'<br>'.join([f'<h2>{category["title"]}</h2><br>' + 
                                   '<br>'.join([f'<div class="card" style="padding: 10px;">'
                                   f'<div class="container-fluid d-flex" style="justify-content: space-between; align-items: center;">'
                                   f'<div>'
-                                  f'<h3>{menu_item.title}: {menu_item.price}руб.</h3>'
+                                  f'<h3>{menu_item["title"]}: {menu_item["price"]}руб.</h3>'
                                   f'</div>'
                                   f'<div class="d-flex" style="align-items: center;">'
                                   f'<div style="margin: 0;">'
                                   f'<p style="margin: 0;">'
-                                  f'<a class="btn btn-outline-primary" href="/menu_item_edit/{menu_item.id}">Изменить</a>'
-                                  f'<a class="btn btn-outline-danger" href="/menu_item_delete/{menu_item.id}">Удалить</a>'
+                                  f'<a class="btn btn-outline-primary" href="/menu_item_edit/{menu_item["id"]}">Изменить</a>'
+                                  f'<a class="btn btn-outline-danger" href="/menu_item_delete/{menu_item["id"]}">Удалить</a>'
                                   f'</p>'
                                   f'</div>'
                                   f'</div>'
                                   f'</div>'
-                                  f'<img src="/menu_item_image/{menu_item.id}" alt="Изображение продукта" style="width: 30vmin">'
+                                  f'<img src="/menu_item_image/{menu_item["id"]}" alt="Изображение продукта" style="width: 30vmin">'
                                   f'</div>'
-                                  for menu_item in category.menu_items]) for category in current_user.menu.categories])}'''
+                                  for menu_item in category['menu_items']]) for category in menu['categories']])}'''
                 }
             ]
         }
     if current_user.__class__.__name__ == 'User':
-        # Settings dict which have next structure [setting -> html markup]
+        # Settings - dict with the following structure {setting: {type, html_markup}/{type, form, form_handler_url}}
         setting_names = {}
         settings = {}
     if current_setting not in setting_names.keys():

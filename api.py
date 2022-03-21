@@ -43,13 +43,11 @@ def restaurant_image(restaurant_id):
 
 
 # Menu
-class MenuListResource(Resource):
+class MenuItemListResource(Resource):
     def get(self, restaurant_id):
         restaurant = db_sess.query(Restaurant).get(restaurant_id)
         if not restaurant:
             abort(404)
-        print([category.to_dict(only=('id', 'title', 'menu_items.id', 'menu_items.title', 'menu_items.price')) for category in restaurant.menu.categories])
-        print(restaurant.to_dict(only=('id', 'title')))
         response = jsonify({'categories': [category.to_dict(only=('id', 'title', 'menu_items.id', 'menu_items.title', 'menu_items.price')) for category in restaurant.menu.categories], 'restaurant': restaurant.to_dict(only=('id', 'title'))})
         return response
 
@@ -61,7 +59,6 @@ class MenuListResource(Resource):
         parser.add_argument('title', required=True, type=str, location='values')
         parser.add_argument('price', required=True, type=int, location='values')
         parser.add_argument('category', required=True, type=str, location='values')
-        print(request)
         args = parser.parse_args()
 
         # Check to errors
@@ -76,6 +73,7 @@ class MenuListResource(Resource):
         if not nice:
             response = jsonify({'successfully': False, 'errors': errors})
             return response
+
         menu = db_sess.query(Menu).get(current_user.menu_id)
         menu_item = MenuItem(
             title=args['title'],
@@ -92,31 +90,33 @@ class MenuListResource(Resource):
         return jsonify({'successfully': True})
 
 
-class MenuResourse(Resource):
+class MenuItemResourse(Resource):
     def get(self, restaurant_id, menu_item_id):
         restaurant = db_sess.query(Restaurant).get(restaurant_id)
         if not restaurant:
             abort(404)
-        menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == restaurant_id, MenuItem.id == menu_item_id).first()
+        menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == restaurant.menu, MenuItem.id == menu_item_id).first()
         if not menu_item:
             abort(404)
-        response = jsonify(menu_item.to_dict(only=('title', 'price', 'category.title')) + {'item_image_url': f'/menu_item_image/{menu_item_id}'})
+        response = jsonify(**menu_item.to_dict(only=('title', 'price', 'category.title')), **{'item_image_url': f'/menu_item_image/{menu_item_id}'})
         return response
 
+    @login_required
     def put(self, restaurant_id, menu_item_id):
         abort_if_user()
         parser = reqparse.RequestParser()
-        parser.add_argument('title', required=True)
-        parser.add_argument('price', required=True, type=int)
-        parser.add_argument('category', required=True)
+        parser.add_argument('item_image', type=werkzeug.datastructures.FileStorage, location='files')
+        parser.add_argument('title', required=True, type=str, location='values')
+        parser.add_argument('price', required=True, type=int, location='values')
+        parser.add_argument('category', required=True, type=str, location='values')
         args = parser.parse_args()
 
         if restaurant_id != current_user.id:
             abort(404)
-        restaurant = db_sess.query(Restaurant).get(restaurant_id)
+        restaurant = db_sess.query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
         if not restaurant:
             abort(404)
-        menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == restaurant_id, MenuItem.id == menu_item_id).first()
+        menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == restaurant.menu, MenuItem.id == menu_item_id).first()
         if not menu_item:
             abort(404)
 
@@ -131,23 +131,25 @@ class MenuResourse(Resource):
         if not nice:
             response = jsonify({'successfully': False, 'errors': errors})
             return response
+
         menu_item.title = args['title']
         menu_item.price = args['price']
         menu_item.category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == args['category']).first()
-        if args['item_image'].data:
+        if args['item_image']:
             f = request.files['item_image']
             menu_item.item_image = f.read()
         db_sess.commit()
         return jsonify({'successfully': True})
 
+    @login_required
     def delete(self, restaurant_id, menu_item_id):
         abort_if_user()
         if restaurant_id != current_user.id:
             abort(404)
-        restaurant = db_sess.query(Restaurant).get(restaurant_id)
+        restaurant = db_sess.query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
         if not restaurant:
             abort(404)
-        menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == restaurant_id, MenuItem.id == menu_item_id).first()
+        menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == restaurant.menu, MenuItem.id == menu_item_id).first()
         if not menu_item:
             abort(404)
         db_sess.query(MenuItem).filter(MenuItem.id == menu_item_id).delete()
@@ -155,5 +157,20 @@ class MenuResourse(Resource):
         return jsonify({'successfully': True})
 
 
-api.add_resource(MenuListResource, '/api/menu/<int:restaurant_id>')
-api.add_resource(MenuResourse, '/api/menu/<int:restaurant_id>/<int:menu_item_id>')
+class MenuCategoryListResourse(Resource):
+    def get(self, restaurant_id):
+        restaurant = db_sess.query(Restaurant).get(restaurant_id)
+        if not restaurant:
+            abort(404)
+        response = jsonify({'categories': [category.to_dict(only=('id', 'title', 'menu_items.id', 'menu_items.title', 'menu_items.price')) for category in restaurant.menu.categories], 'restaurant': restaurant.to_dict(only=('id', 'title'))})
+        return response
+
+
+class MenuCategoryResourse(Resource):
+    pass
+
+
+api.add_resource(MenuItemListResource, '/api/menu/<int:restaurant_id>')
+api.add_resource(MenuItemResourse, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
+api.add_resource(MenuCategoryListResourse, '/api/menu/<int:restaurant_id>/category')
+api.add_resource(MenuCategoryResourse, '/api/menu/<int:restaurant_id>/category/<int:category_id>')

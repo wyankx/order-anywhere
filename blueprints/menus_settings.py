@@ -104,7 +104,6 @@ def menu_items_add():
     abort_if_user()
     form = MenuItemForm()
     if form.validate_on_submit():
-        # Check to errors
         req_sess = requests.Session()
         data = req_sess.post(request.host_url + f'api/menu/{current_user.id}', data={
             'title': form.title.data,
@@ -135,35 +134,37 @@ def menu_items_add():
 @login_required
 def menu_item_edit(menu_item_id):
     abort_if_user()
-    menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.id == menu_item_id).first()
-    if not menu_item:
-        abort(404)
+    menu_item = requests.get(request.host_url + f'api/menu/{current_user.id}/item/{menu_item_id}')
+    if menu_item.status_code != 200:
+        abort(menu_item.status_code)
+    menu_item = menu_item.json()
     form = MenuItemForm()
     if form.validate_on_submit():
-        # Check to errors
-        nice = True
-        if db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.title == form.title.data, MenuItem.id != menu_item_id).first():
-            form.title.errors.append('Продукт с таким именем уже существует')
-            nice = False
-        if not db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.category.data).first():
-            form.category.errors.append('Такой категории не существует')
-            nice = False
-        if not nice:
+        req_sess = requests.Session()
+        data = req_sess.put(request.host_url + f'api/menu/{current_user.id}/item/{menu_item_id}', data={
+            'title': form.title.data,
+            'price': form.price.data,
+            'category': form.category.data
+        }, files={
+            'item_image': request.files['item_image']
+        }, cookies=request.cookies.to_dict())
+        if data.status_code != 200:
+            abort(data.status_code)
+        data = data.json()
+
+        if not data['successfully']:
+            for error in data['errors']:
+                if error['error_field'] == 'title':
+                    form.title.errors.append(error['error'])
+                if error['error_field'] == 'category':
+                    form.category.errors.append(error['error'])
             response = render_template('form.html', form=form, title='Изменение продукта')
             return response
-
-        if form.item_image.data:
-            f = request.files['item_image']
-            filename = f'menu_item_{menu_item.id}.jpg'
-            menu_item.item_image = f.read()
-        menu_item.title = form.title.data
-        menu_item.price = form.price.data
-        menu_item.category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.category.data).first()
-        db_sess.commit()
-        return redirect('/settings/menu')
-    form.title.data = menu_item.title
-    form.price.data = menu_item.price
-    form.category.data = menu_item.category.title
+        if data['successfully']:
+            return redirect('/settings/menu')
+    form.title.data = menu_item['title']
+    form.price.data = menu_item['price']
+    form.category.data = menu_item['category']['title']
     response = render_template('form.html', form=form, title='Изменение продукта')
     return response
 
@@ -172,13 +173,17 @@ def menu_item_edit(menu_item_id):
 @login_required
 def menu_item_delete(menu_item_id):
     abort_if_user()
-    menu_item = db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.id == menu_item_id).first()
-    if not menu_item:
-        abort(404)
+    menu_item = requests.get(request.host_url + f'api/menu/{current_user.id}/item/{menu_item_id}')
+    if menu_item.status_code != 200:
+        abort(menu_item.status_code)
+    menu_item = menu_item.json()
     form = SubmitForm()
     if form.validate_on_submit():
-        db_sess.query(MenuItem).filter(MenuItem.id == menu_item_id).delete()
-        db_sess.commit()
-        return redirect('/settings/menu')
-    response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить продукт {menu_item.title}')
+        response = requests.delete(request.host_url + f'api/menu/{current_user.id}/item/{menu_item_id}', cookies=request.cookies.to_dict())
+        if response.status_code != 200:
+            abort(response.status_code)
+        response = response.json()
+        if response['successfully']:
+            return redirect('/settings/menu')
+    response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить продукт {menu_item["title"]}')
     return response

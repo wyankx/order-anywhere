@@ -6,7 +6,6 @@ from flask import Flask, render_template, abort, make_response
 from flask_login import LoginManager, current_user
 from flask_wtf import CSRFProtect
 
-from data.db_session import db_session as db_sess
 from data import db_session
 
 # Will not work on Heroku, but needed for tests
@@ -17,6 +16,8 @@ if os.path.exists(dotenv_path):
 
 if __name__ == '__main__':
     db_session.global_init(os.environ.get('DATABASE_URL'))
+
+from data.db_session import db_session as db_sess
 
 import api
 from blueprints import settings
@@ -47,7 +48,7 @@ login_manager.init_app(app)
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
-    from data.db_session import db_session as db_sess
+    db_sess.remove()
 
 
 # Error handlers

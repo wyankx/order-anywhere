@@ -56,7 +56,7 @@ def get_order(restaurant_id):
 def order(restaurant_id):
     abort_if_restaurant()
     order = get_order(restaurant_id)
-    menu = requests.get(request.host_url + url_for(f'menulistresource', restaurant_id=restaurant_id))
+    menu = requests.get(request.host_url + f'api/menu/{restaurant_id}')
     if menu.status_code != 200:
         abort(menu.status_code)
     menu = menu.json()
