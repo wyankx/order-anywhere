@@ -62,6 +62,12 @@ class MenuItemListResource(Resource):
         args = parser.parse_args()
 
         # Check to errors
+        if restaurant_id != current_user.id:
+            abort(404)
+        restaurant = db_sess.query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
+        if not restaurant:
+            abort(404)
+
         nice = True
         errors = []
         if db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.title == args['title']).first():
@@ -123,7 +129,7 @@ class MenuItemResourse(Resource):
         nice = True
         errors = []
         if db_sess.query(MenuItem).filter(MenuItem.menu == current_user.menu, MenuItem.title == args['title'], MenuItem.id != menu_item_id).first():
-            errors.append({'error': 'Продукт с таким именем уже существует', 'error_field': 'title'})
+            errors.append({'error': 'Продукт с таким названием уже существует', 'error_field': 'title'})
             nice = False
         if not db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == args['category']).first():
             errors.append({'error': 'Такой категории не существует', 'error_field': 'category'})
@@ -165,12 +171,104 @@ class MenuCategoryListResourse(Resource):
         response = jsonify({'categories': [category.to_dict(only=('id', 'title', 'menu_items.id', 'menu_items.title', 'menu_items.price')) for category in restaurant.menu.categories], 'restaurant': restaurant.to_dict(only=('id', 'title'))})
         return response
 
+    @login_required
+    def post(self, restaurant_id):
+        abort_if_user()
+        parser = reqparse.RequestParser()
+        parser.add_argument('title', required=True, type=str, location='values')
+        args = parser.parse_args()
+
+        if restaurant_id != current_user.id:
+            abort(404)
+        restaurant = db_sess.query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
+        if not restaurant:
+            abort(404)
+
+        nice = True
+        errors = []
+        if db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == args['title']).first():
+            errors.append({'error': 'Категория с таким названием уже существует', 'error_field': 'title'})
+            nice = False
+        if not nice:
+            response = jsonify({'successfully': False, 'errors': errors})
+            return response
+
+        menu = db_sess.query(Menu).get(current_user.menu_id)
+        category = Category(
+            title=args['title']
+        )
+        menu.categories.append(category)
+        db_sess.commit()
+        return jsonify({'successfully': True})
+
 
 class MenuCategoryResourse(Resource):
-    pass
+    def get(self, restaurant_id, category_id):
+        restaurant = db_sess.query(Restaurant).get(restaurant_id)
+        if not restaurant:
+            abort(404)
+        category = db_sess.query(MenuItem).filter(MenuItem.menu == restaurant.menu, MenuItem.id == menu_item_id).first()
+        if not category:
+            abort(404)
+        response = jsonify(category.to_dict(only=('title',)))
+        return response
+
+    @login_required
+    def put(self, restaurant_id, category_id):
+        abort_if_user()
+        parser = reqparse.RequestParser()
+        parser.add_argument('title', required=True, type=str, location='values')
+        args = parser.parse_args()
+
+        if restaurant_id != current_user.id:
+            abort(404)
+        restaurant = db_sess.query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
+        if not restaurant:
+            abort(404)
+        category = db_sess.query(Category).filter(Category.id == category_id).first()
+        if not category:
+            abort(404)
+
+        nice = True
+        errors = []
+        if db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == args['title'], Category.id != category_id).first():
+            errors.append({'error': 'Категория с таким названием уже существует', 'error_field': 'title'})
+            nice = False
+        if not nice:
+            response = jsonify({'successfully': False, 'errors': errors})
+            return response
+
+        category.title = args['title']
+        db_sess.commit()
+        return jsonify({'successfully': True})
+
+    @login_required
+    def delete(self, restaurant_id, category_id):
+        abort_if_user()
+        if restaurant_id != current_user.id:
+            abort(404)
+        restaurant = db_sess.query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
+        if not restaurant:
+            abort(404)
+        category = db_sess.query(Category).filter(Category.id == category_id).first()
+        if not category:
+            abort(404)
+
+        nice = True
+        errors = []
+        if category.menu_items:
+            errors.append({'error': 'В категории остались продукты', 'error_field': 'menu'})
+            nice = False
+        if not nice:
+            response = jsonify({'successfully': False, 'errors': errors})
+            return response
+
+        db_sess.query(Category).filter(Category.id == category_id).delete()
+        db_sess.commit()
+        return jsonify({'successfully': True})
 
 
 api.add_resource(MenuItemListResource, '/api/menu/<int:restaurant_id>')
 api.add_resource(MenuItemResourse, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
-api.add_resource(MenuCategoryListResourse, '/api/menu/<int:restaurant_id>/category')
+api.add_resource(MenuCategoryListResourse, '/api/menu/<int:restaurant_id>/categories')
 api.add_resource(MenuCategoryResourse, '/api/menu/<int:restaurant_id>/category/<int:category_id>')

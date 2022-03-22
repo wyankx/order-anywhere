@@ -37,17 +37,21 @@ def categories_add():
     abort_if_user()
     form = CategoryForm()
     if form.validate_on_submit():
-        if db_sess.query(Category).filter(Category.menu == current_user.menu, MenuItem.title == form.title.data).first():
-            form.title.errors.append('Категория с таким именем уже существует')
+        data = requests.post(request.host_url + f'api/menu/{current_user.id}/categories', data={
+            'title': form.title.data
+        }, cookies=request.cookies.to_dict())
+        if data.status_code != 200:
+            abort(data.status_code)
+        data = data.json()
+
+        if not data['successfully']:
+            for error in data['errors']:
+                if error['error_field'] == 'title':
+                    form.title.errors.append(error['error'])
             response = render_template('form.html', form=form, title='Создание категории')
             return response
-        category = Category(
-            title=form.title.data
-        )
-        menu = db_sess.query(Menu).get(current_user.menu_id)
-        menu.categories.append(category)
-        db_sess.commit()
-        return redirect('/settings/menu')
+        if data['successfully']:
+            return redirect('/settings/menu')
     response = render_template('form.html', form=form, title='Создание категории')
     return response
 
@@ -61,13 +65,21 @@ def category_edit(category_id):
         abort(404)
     form = CategoryForm()
     if form.validate_on_submit():
-        if db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == form.title.data, Category.id != category.id).first():
-            form.title.errors.append('Категория с таким именем уже существует')
+        data = requests.put(request.host_url + f'api/menu/{current_user.id}/category/{category_id}', data={
+            'title': form.title.data
+        }, cookies=request.cookies.to_dict())
+        if data.status_code != 200:
+            abort(data.status_code)
+        data = data.json()
+
+        if not data['successfully']:
+            for error in data['errors']:
+                if error['error_field'] == 'title':
+                    form.title.errors.append(error['error'])
             response = render_template('form.html', form=form, title='Изменение категории')
             return response
-        category.title = form.title.data
-        db_sess.commit()
-        return redirect('/settings/menu')
+        if data['successfully']:
+            return redirect('/settings/menu')
     form.title.data = category.title
     response = render_template('form.html', form=form, title='Изменение категории')
     return response
@@ -85,16 +97,14 @@ def category_delete(category_id):
         return response
     form = SubmitForm()
     if form.validate_on_submit():
-        db_sess.query(Category).filter(Category.id == category_id).delete()
-        db_sess.commit()
-        return redirect('/settings/menu')
+        data = requests.delete(request.host_url + f'api/menu/{current_user.id}/category/{category_id}', cookies=request.cookies.to_dict())
+        if data.status_code != 200:
+            abort(data.status_code)
+        data = data.json()
+        if data['successfully']:
+            return redirect('/settings/menu')
     response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить категорию {category.title}')
     return response
-
-
-@blueprint.route('/test', methods=['POST'])
-def a():
-    pass
 
 
 # Menu change
@@ -104,8 +114,7 @@ def menu_items_add():
     abort_if_user()
     form = MenuItemForm()
     if form.validate_on_submit():
-        req_sess = requests.Session()
-        data = req_sess.post(request.host_url + f'api/menu/{current_user.id}', data={
+        data = requests.post(request.host_url + f'api/menu/{current_user.id}', data={
             'title': form.title.data,
             'price': form.price.data,
             'category': form.category.data
@@ -140,8 +149,7 @@ def menu_item_edit(menu_item_id):
     menu_item = menu_item.json()
     form = MenuItemForm()
     if form.validate_on_submit():
-        req_sess = requests.Session()
-        data = req_sess.put(request.host_url + f'api/menu/{current_user.id}/item/{menu_item_id}', data={
+        data = requests.put(request.host_url + f'api/menu/{current_user.id}/item/{menu_item_id}', data={
             'title': form.title.data,
             'price': form.price.data,
             'category': form.category.data

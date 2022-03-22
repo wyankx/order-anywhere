@@ -29,7 +29,7 @@
         <div class="tab-content" id="v-pills-tabContent">
             {% for category in categories %}
                     <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="v-pills-{{ category.id }}" role="tabpanel" aria-labelledby="v-pills-{{ category.id }}">
-                        <div class="d-flex" style="flex-wrap: wrap">
+                        <div class="d-flex" style="flex-wrap: wrap; align-items: start;">
                             {% for menu_item in category.menu_items %}
                                 <div class="card" style="width: 18rem; margin: 1rem;">
                                     <img src="/menu_item_image/{{ menu_item.id }}" class="card-img-top" alt="Изображение продукта">
