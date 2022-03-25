@@ -54,17 +54,17 @@ def shutdown_session(exception=None):
 # Error handlers
 @app.errorhandler(401)
 def forbidden_error(error):
-    return make_response(render_template('unauthorized.html', title='неправильный тип аккаунта'), 403)
+    return make_response(render_template('show_error_text.html', title='Вы не авторизованы'), 403)
 
 
 @app.errorhandler(403)
 def forbidden_error(error):
-    return make_response(render_template('bad_account_type.html', title='неправильный тип аккаунта'), 403)
+    return make_response(render_template('show_error_text.html', title='Неправильный тип аккаунта'), 403)
 
 
 @app.errorhandler(404)
 def not_found(error):
-    return make_response(render_template('not_found.html', title='Страница не найдена'), 404)
+    return make_response(render_template('show_error_text.html', title='Страница не найдена'), 404)
 
 
 # User load

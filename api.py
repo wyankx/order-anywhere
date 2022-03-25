@@ -96,7 +96,7 @@ class MenuItemListResource(Resource):
         return jsonify({'successfully': True})
 
 
-class MenuItemResourse(Resource):
+class MenuItemResource(Resource):
     def get(self, restaurant_id, menu_item_id):
         restaurant = db_sess.query(Restaurant).get(restaurant_id)
         if not restaurant:
@@ -163,7 +163,7 @@ class MenuItemResourse(Resource):
         return jsonify({'successfully': True})
 
 
-class MenuCategoryListResourse(Resource):
+class MenuCategoryListResource(Resource):
     def get(self, restaurant_id):
         restaurant = db_sess.query(Restaurant).get(restaurant_id)
         if not restaurant:
@@ -202,7 +202,7 @@ class MenuCategoryListResourse(Resource):
         return jsonify({'successfully': True})
 
 
-class MenuCategoryResourse(Resource):
+class MenuCategoryResource(Resource):
     def get(self, restaurant_id, category_id):
         restaurant = db_sess.query(Restaurant).get(restaurant_id)
         if not restaurant:
@@ -269,6 +269,47 @@ class MenuCategoryResourse(Resource):
 
 
 api.add_resource(MenuItemListResource, '/api/menu/<int:restaurant_id>')
-api.add_resource(MenuItemResourse, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
-api.add_resource(MenuCategoryListResourse, '/api/menu/<int:restaurant_id>/categories')
-api.add_resource(MenuCategoryResourse, '/api/menu/<int:restaurant_id>/category/<int:category_id>')
+api.add_resource(MenuItemResource, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
+api.add_resource(MenuCategoryListResource, '/api/menu/<int:restaurant_id>/categories')
+api.add_resource(MenuCategoryResource, '/api/menu/<int:restaurant_id>/category/<int:category_id>')
+
+
+# Order
+class OrderListResource(Resource):
+    @login_required
+    def get(self, order_id):
+        order = db_sess.query(Order).filter(Order.id == order_id).first()
+        if not order:
+            abort(404)
+        if current_user.__class__ == 'User':
+            if order.user_id != current_user.id:
+                abort(404)
+        if current_user.__class__ == 'Restaurant':
+            if order.restaurant_id == current_user.id:
+                abort(404)
+        return jsonify(order.to_dict(only=('id', 'price', 'state', 'restaurant.id', 'restaurant.menu.id', 'user.id', 'user.name', 'order_items.id', 'order_items.count', 'order_items.menu_item.title', 'order_items.menu_item.price')))
+
+
+class OrderItemResource(Resource):
+    @login_required
+    def put(self, order_id, order_item_id):
+        abort_if_restaurant()
+        parser = reqparse.RequestParser()
+        parser.add_argument('count', required=True, type=int, location='values')
+        args = parser.parse_args()
+
+        order = db_sess.query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+        if not order:
+            abort(404)
+        order_item = db_sess.query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first()
+        if not order_item:
+            abort(404)
+        order_item.count = args['count']
+        db_sess.commit()
+        order.price = sum([item.menu_item.price * item.count for item in order.order_items])
+        db_sess.commit()
+        return jsonify({'successfully': True})
+
+
+api.add_resource(OrderListResource, '/api/order/<int:order_id>')
+api.add_resource(OrderItemResource, '/api/order/<int:order_id>/<int:order_item_id>')

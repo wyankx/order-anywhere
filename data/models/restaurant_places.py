@@ -14,3 +14,5 @@ class RestaurantPlace(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     restaurant_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('restaurants.id'))
     restaurant = orm.relation('Restaurant')
+
+    orders = orm.relation('Order', back_populates='restaurant_place', lazy='subquery')

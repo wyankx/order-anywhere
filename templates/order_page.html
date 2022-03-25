@@ -6,8 +6,8 @@
             <h1 style="text-align: center">{{ restaurant.title }}</h1>
         </div>
         <div style="margin-bottom: 0; margin-right: 3rem">
-            <a type="button" class="btn btn-primary position-relative" href="/order/show">
-                Заказ
+            <a type="button" class="btn btn-primary position-relative" href="/order/{{ restaurant.id }}/show">
+                Корзина
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                     {{ order.order_items|length }}
                     <span class="visually-hidden">order items count</span>
@@ -42,7 +42,7 @@
                                             </div>
                                             <div style="width: 6rem">
                                                 <label for="count" class="visually-hidden">Кол-во</label>
-                                                <input type="number" step="1" min="1" value="1" required class="form-control" id="password" placeholder="Кол-во" name="count">
+                                                <input type="number" step="1" min="1" value="1" required class="form-control" placeholder="Кол-во" name="count">
                                             </div>
                                         </form>
                                     </div>

@@ -16,6 +16,9 @@ class Order(SqlAlchemyBase, UserMixin, SerializerMixin):
     restaurant_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('restaurants.id'))
     restaurant = orm.relation('Restaurant')
 
+    restaurant_place_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('restaurant_places.id'))
+    restaurant_place = orm.relation('RestaurantPlace')
+
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
     user = orm.relation('User')
 
