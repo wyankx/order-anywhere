@@ -5,6 +5,7 @@ from flask_restful import reqparse, abort, Api, Resource
 import werkzeug
 
 from data.db_session import get_session
+from flask_socketio import SocketIO
 
 from operations import abort_if_restaurant, abort_if_user
 
@@ -20,6 +21,15 @@ from data.models.restaurant_places import RestaurantPlace
 
 app = Flask(__name__)
 api = Api(app)
+
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+print(f' * SECRET_KEY: {os.environ.get("SECRET_KEY")}')
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
+    days=365
+)
+app.config['SQLALCHEMY_POOL_SIZE'] = 20
+
+socketio = SocketIO(app)
 
 
 # Images
@@ -297,7 +307,34 @@ class OrderListResource(Resource):
         return jsonify(order.to_dict(only=('id', 'price', 'state', 'restaurant.id', 'restaurant.menu.id', 'restaurant.places.id', 'restaurant.places.title', 'user.id', 'user.name', 'order_items.id', 'order_items.count', 'order_items.menu_item.title', 'order_items.menu_item.price', 'restaurant_place_id')))
 
     @login_required
-    def put(self, order_id):
+    def post(self, order_id):  # For change state of order
+        parser = reqparse.RequestParser()
+        parser.add_argument('new_state', required=True, type=str, location='values')
+        args = parser.parse_args()
+
+        if current_user.__class__.__name__ == 'User':
+            order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+            allowed_state = ['Awaiting payment']
+        if current_user.__class__.__name__ == 'Restaurant':
+            order = get_session().query(Order).filter(Order.id == order_id, Order.restaurant_id == current_user.id).first()
+            allowed_state = ['In progress', 'Ready']
+
+        if not order:
+            abort(404)
+        if args['state'] not in allowed_state:
+            abort(403)
+
+        if order.state == 'Is not sent' and args['new_state'] == 'Awaiting payment':
+            socketio.emit('order_add', {'order_id': order_id}, to=order.restaurant_place_id)
+        else:
+            socketio.emit('order_change', {'order_id': order_id}, to=order.restaurant_place_id)
+
+        order.state = args.state
+        get_session().commit()
+        return jsonify({'successfully': True})
+
+    @login_required
+    def put(self, order_id):  # For change data
         abort_if_restaurant()
         parser = reqparse.RequestParser()
         parser.add_argument('restaurant_place_id', required=True, type=int, location='values')

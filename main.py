@@ -32,21 +32,13 @@ from data.models.profile_types import ProfileType
 from data.models.users import User
 from data.models.restaurants import Restaurant
 from data.models.menu_items import MenuItem
-from flask_socketio import SocketIO
 
 
 app = api.app
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-print(f' * SECRET_KEY: {os.environ.get("SECRET_KEY")}')
-app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
-    days=365
-)
-app.config['SQLALCHEMY_POOL_SIZE'] = 20
+socketio = api.socketio
 
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-socketio = SocketIO(app)
 
 
 @app.teardown_appcontext

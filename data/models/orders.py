@@ -11,7 +11,7 @@ class Order(SqlAlchemyBase, UserMixin, SerializerMixin):
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
     price = sqlalchemy.Column(sqlalchemy.Integer)
-    state = sqlalchemy.Column(sqlalchemy.String, default='Is not sent')  # Is not sent/Awaiting payment/In progress
+    state = sqlalchemy.Column(sqlalchemy.String, default='Is not sent')  # Is not sent/Awaiting payment/In progress/Ready
 
     restaurant_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('restaurants.id'))
     restaurant = orm.relation('Restaurant')

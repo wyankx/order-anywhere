@@ -39,7 +39,7 @@ def create_session() -> Session:
     return orm.scoped_session(__factory)
 
 
-def get_session():
+def get_session() -> Session:
     return db_session
 
 
