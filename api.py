@@ -199,16 +199,16 @@ class MenuCategoryListResource(Resource):
             title=args['title']
         )
         menu.categories.append(category)
-        db_sess.commit()
+        get_session().commit()
         return jsonify({'successfully': True})
 
 
 class MenuCategoryResource(Resource):
     def get(self, restaurant_id, category_id):
-        restaurant = db_sess.query(Restaurant).get(restaurant_id)
+        restaurant = get_session().query(Restaurant).get(restaurant_id)
         if not restaurant:
             abort(404)
-        category = db_sess.query(MenuItem).filter(MenuItem.menu == restaurant.menu, MenuItem.id == menu_item_id).first()
+        category = get_session().query(Category).filter(Category.menu == restaurant.menu, Category.id == category_id).first()
         if not category:
             abort(404)
         response = jsonify(category.to_dict(only=('title',)))
@@ -223,16 +223,16 @@ class MenuCategoryResource(Resource):
 
         if restaurant_id != current_user.id:
             abort(404)
-        restaurant = db_sess.query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
+        restaurant = get_session().query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
         if not restaurant:
             abort(404)
-        category = db_sess.query(Category).filter(Category.id == category_id).first()
+        category = get_session().query(Category).filter(Category.id == category_id).first()
         if not category:
             abort(404)
 
         nice = True
         errors = []
-        if db_sess.query(Category).filter(Category.menu == current_user.menu, Category.title == args['title'], Category.id != category_id).first():
+        if get_session().query(Category).filter(Category.menu == current_user.menu, Category.title == args['title'], Category.id != category_id).first():
             errors.append({'error': 'Категория с таким названием уже существует', 'error_field': 'title'})
             nice = False
         if not nice:
@@ -240,7 +240,7 @@ class MenuCategoryResource(Resource):
             return response
 
         category.title = args['title']
-        db_sess.commit()
+        get_session().commit()
         return jsonify({'successfully': True})
 
     @login_required
@@ -248,10 +248,10 @@ class MenuCategoryResource(Resource):
         abort_if_user()
         if restaurant_id != current_user.id:
             abort(404)
-        restaurant = db_sess.query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
+        restaurant = get_session().query(Restaurant).filter(Restaurant.id == restaurant_id, current_user.id == restaurant_id).first()
         if not restaurant:
             abort(404)
-        category = db_sess.query(Category).filter(Category.id == category_id).first()
+        category = get_session().query(Category).filter(Category.id == category_id).first()
         if not category:
             abort(404)
 
@@ -264,8 +264,8 @@ class MenuCategoryResource(Resource):
             response = jsonify({'successfully': False, 'errors': errors})
             return response
 
-        db_sess.query(Category).filter(Category.id == category_id).delete()
-        db_sess.commit()
+        get_session().query(Category).filter(Category.id == category_id).delete()
+        get_session().commit()
         return jsonify({'successfully': True})
 
 
@@ -277,15 +277,15 @@ api.add_resource(MenuCategoryResource, '/api/menu/<int:restaurant_id>/category/<
 
 # Order
 def update_order_price(order_id):
-    order = db_sess.query(Order).get(order_id)
+    order = get_session().query(Order).get(order_id)
     order.price = sum([item.menu_item.price * item.count for item in order.order_items])
-    db_sess.commit()
+    get_session().commit()
 
 
 class OrderListResource(Resource):
     @login_required
     def get(self, order_id):
-        order = db_sess.query(Order).filter(Order.id == order_id).first()
+        order = get_session().query(Order).filter(Order.id == order_id).first()
         if not order:
             abort(404)
         if current_user.__class__ == 'User':
@@ -303,16 +303,16 @@ class OrderListResource(Resource):
         parser.add_argument('restaurant_place_id', required=True, type=int, location='values')
         args = parser.parse_args()
 
-        order = db_sess.query(Order).filter(Order.id == order_id).first()
+        order = get_session().query(Order).filter(Order.id == order_id).first()
         if not order:
             abort(404)
         if order.user_id != current_user.id:
             abort(404)
-        restaurant_place = db_sess.query(RestaurantPlace).filter(RestaurantPlace.id == args['restaurant_place_id'], RestaurantPlace.restaurant_id == order.restaurant_id).first()
+        restaurant_place = get_session().query(RestaurantPlace).filter(RestaurantPlace.id == args['restaurant_place_id'], RestaurantPlace.restaurant_id == order.restaurant_id).first()
         if not restaurant_place:
             abort(404)
         order.restaurant_place_id = restaurant_place.id
-        db_sess.commit()
+        get_session().commit()
         return jsonify({'successfully': True})
 
 
@@ -324,24 +324,24 @@ class OrderItemResource(Resource):
         parser.add_argument('count', required=True, type=int, location='values')
         args = parser.parse_args()
 
-        order = db_sess.query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
         if not order:
             abort(404)
-        order_item = db_sess.query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first()
+        order_item = get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first()
         if not order_item:
             abort(404)
         order_item.count = args['count']
-        db_sess.commit()
+        get_session().commit()
         update_order_price(order_id)
         return jsonify({'successfully': True})
 
     def delete(self, order_id, order_item_id):
         abort_if_restaurant()
-        order = db_sess.query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
         if not order:
             abort(404)
-        order_item = db_sess.query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).delete()
-        db_sess.commit()
+        order_item = get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).delete()
+        get_session().commit()
         update_order_price(order_id)
         return jsonify({'successfully': True})
 
