@@ -75,13 +75,13 @@
                 http.send(send_data);
 
                 var url = `${window.location.origin}/api/order/{{ order.id }}`
-                fetch(url)
+                setTimeout(() => { fetch(url)
                     .then(function(response) {
                         return response.json();
                     })
                     .then(function(jsonResponse) {
                         document.getElementById('grand_total').textContent=jsonResponse['price'];
-                    });
+                    }) }, 150);
 
             }
         }
