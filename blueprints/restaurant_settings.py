@@ -13,7 +13,7 @@ from forms.category import CategoryForm
 from forms.submit import SubmitForm
 from forms.restaurant_general_edit import RestaurantGeneralEditForm
 
-from data.db_session import db_session as db_sess
+from data.db_session import get_session
 
 from data.models.menus import Menu
 from data.models.users import User
@@ -36,16 +36,16 @@ def restaurant_edit():
     abort_if_user()
     form = RestaurantGeneralEditForm()
     if form.validate_on_submit():
-        if db_sess.query(Restaurant).filter(Restaurant.title == form.title.data, Restaurant.id != current_user.id).first():
+        if get_session().query(Restaurant).filter(Restaurant.title == form.title.data, Restaurant.id != current_user.id).first():
             form.title.errors.append('Ресторан с таким названием существует')
             response = render_template('form.html', title='Изменение ресторана', form=form)
             return response
-        restaurant = db_sess.query(Restaurant).get(current_user.id)
+        restaurant = get_session().query(Restaurant).get(current_user.id)
         restaurant.title = form.title.data
         if form.logo.data:
             f = request.files['logo']
             restaurant.profile_image = f.read()
-        db_sess.commit()
+        get_session().commit()
         return redirect('/settings/general')
     response = render_template('form.html', title='Изменение ресторана', form=form)
     return response

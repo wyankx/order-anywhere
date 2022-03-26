@@ -14,7 +14,7 @@ from forms.menu_item import MenuItemForm
 from forms.category import CategoryForm
 from forms.submit import SubmitForm
 
-from data.db_session import db_session as db_sess
+from data.db_session import get_session
 
 from data.models.menus import Menu
 from data.models.users import User
@@ -36,22 +36,22 @@ blueprint = Blueprint(
 @login_required
 def get_order(restaurant_id):
     abort_if_restaurant()
-    user = db_sess.query(User).get(current_user.id)
-    restaurant = db_sess.query(Restaurant).get(restaurant_id)
+    user = get_session().query(User).get(current_user.id)
+    restaurant = get_session().query(Restaurant).get(restaurant_id)
     if len(restaurant.places) == 0:
         return 'No places'
     if not restaurant:
         abort(404)
-    order = db_sess.query(Order).filter(Order.user == user, Order.restaurant == restaurant).first()
+    order = get_session().query(Order).filter(Order.user == user, Order.restaurant == restaurant).first()
     if not order:
         order = Order(
             price=0,
             restaurant=restaurant,
             user=user,
-            restaurant_place_id=db_sess.query(RestaurantPlace).filter(RestaurantPlace.restaurant_id == restaurant_id).first().id
+            restaurant_place_id=get_session().query(RestaurantPlace).filter(RestaurantPlace.restaurant_id == restaurant_id).first().id
         )
-        db_sess.add(order)
-        db_sess.commit()
+        get_session().add(order)
+        get_session().commit()
     return requests.get(request.host_url + f'api/order/{order.id}', cookies=request.cookies.to_dict()).json()
 
 
@@ -64,7 +64,7 @@ def no_places():
 def order(restaurant_id):
     abort_if_restaurant()
     order = get_order(restaurant_id)
-    if order == 'Not places':
+    if order == 'No places':
         return no_places()
     menu = requests.get(request.host_url + f'api/menu/{restaurant_id}')
     if menu.status_code != 200:
@@ -81,7 +81,7 @@ def order_add_item(restaurant_id, menu_item_id):
     order = get_order(restaurant_id)
     if order == 'No places':
         return no_places()
-    menu_item = db_sess.query(MenuItem).filter(MenuItem.id == menu_item_id, MenuItem.menu_id == order['restaurant']['menu']['id']).first()
+    menu_item = get_session().query(MenuItem).filter(MenuItem.id == menu_item_id, MenuItem.menu_id == order['restaurant']['menu']['id']).first()
     if not menu_item:
         abort(404)
     try:
@@ -92,16 +92,30 @@ def order_add_item(restaurant_id, menu_item_id):
         )
     except ValueError:
         abort(404)
-    db_sess.add(order_item)
-    db_sess.commit()
+    get_session().add(order_item)
+    get_session().commit()
     update_order_price(restaurant_id)
     return redirect(f'/order/{restaurant_id}')
 
 
+@blueprint.route('/order/<int:restaurant_id>/delete_item/<int:order_item_id>')
+def order_delete_item(restaurant_id, order_item_id):
+    abort_if_restaurant()
+    order = get_order(restaurant_id)
+    if order == 'No places':
+        return no_places()
+    api_response = requests.delete(request.host_url + f'api/order/{order["id"]}/{order_item_id}', cookies=request.cookies)
+    if api_response.status_code != 200:
+        abort(api_response.status_code)
+    api_response = api_response.json()
+    if api_response['successfully']:
+        return redirect(f'/order/{restaurant_id}/show')
+
+
 def update_order_price(restaurant_id):
-    order = db_sess.query(Order).get(get_order(restaurant_id)['id'])
+    order = get_session().query(Order).get(get_order(restaurant_id)['id'])
     order.price = sum([item.menu_item.price * item.count for item in order.order_items])
-    db_sess.commit()
+    get_session().commit()
 
 
 @blueprint.route('/order/<int:restaurant_id>/show')
@@ -111,5 +125,5 @@ def order_show(restaurant_id):
     order = get_order(restaurant_id)
     if order == 'No places':
         return no_places()
-    restaurant = db_sess.query(Restaurant).get(restaurant_id)
+    restaurant = get_session().query(Restaurant).get(restaurant_id)
     return render_template('order_show.html', order=order, restaurant=restaurant, title='Заказ')

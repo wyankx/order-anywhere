@@ -39,6 +39,10 @@ def create_session() -> Session:
     return orm.scoped_session(__factory)
 
 
+def get_session():
+    return db_session
+
+
 def close_connection(db_sess: orm.scoped_session):
     db_sess.remove()
     engine.dispose()

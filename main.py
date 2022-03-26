@@ -17,7 +17,7 @@ if os.path.exists(dotenv_path):
 if __name__ == '__main__':
     db_session.global_init(os.environ.get('DATABASE_URL'))
 
-from data.db_session import db_session as db_sess
+from data.db_session import get_session
 
 import api
 from blueprints import settings
@@ -48,7 +48,7 @@ login_manager.init_app(app)
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
-    db_sess.remove()
+    get_session().remove()
 
 
 # Error handlers
@@ -71,13 +71,13 @@ def not_found(error):
 @login_manager.user_loader
 def load_user(profile_id):
     prifile_id = int(profile_id)
-    profile = db_sess.query(ProfileType).get(profile_id)
+    profile = get_session().query(ProfileType).get(profile_id)
     if not profile:
         return profile
     if profile.profile_type == 'User':
-        return db_sess.query(User).get(profile.account_id)
+        return get_session().query(User).get(profile.account_id)
     if profile.profile_type == 'Restaurant':
-        return db_sess.query(Restaurant).get(profile.account_id)
+        return get_session().query(Restaurant).get(profile.account_id)
 
 
 # Main page

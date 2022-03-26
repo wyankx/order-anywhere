@@ -13,6 +13,12 @@
     </div>
     <div class="card" style="margin-left: 10vmin; margin-right: 10vmin; margin-top: 2vmin; padding: 4rem">
         <div class="card-body">
+            <h2>Организация</h2>
+            <select class="form-select" aria-label="Organisation select" style="width: 15rem" onchange="restaurant_place_update(this);">
+                {% for place in order.restaurant.places %}
+                    <option value="{{ place.id }}"{% if place.id == order.restaurant_place_id %} selected{% endif %}>{{ place.title }}</option>
+                {% endfor %}
+            </select><hr>
             <h3 style="text-align: center">Ваш заказ</h3>
             {% for order_item in order.order_items %}
                 <div class="card" style="padding: 1rem; margin-bottom: 0.5rem">
@@ -43,11 +49,23 @@
     </div>
 
     <script>
+        function restaurant_place_update(field) {
+            let id = field.value;
+            console.log("RESTAURANT PLACE UPDATE: id: " + id);
+
+            var url = `${window.location.origin}/api/order/{{ order.id }}`
+            let http = new XMLHttpRequest();
+            http.open("PUT", url, true);
+            http.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            let send_data = `restaurant_place_id=${id}`;
+            http.send(send_data);
+        }
+
         function count_update(field) {
             let id = field.name.split('_')[field.name.split('_').length - 1];
             let count = field.value;
             if (count > 0) {
-                console.log("field: " + field.value + ", name: " + count + ", id: " + id);
+                console.log("COUNT UPDATE: field: " + field.value + ", name: " + count + ", id: " + id);
 
                 var url = `${window.location.origin}/api/order/{{ order.id }}/${id}`
                 let http = new XMLHttpRequest();

@@ -14,7 +14,7 @@ from forms.menu_item import MenuItemForm
 from forms.category import CategoryForm
 from forms.submit import SubmitForm
 
-from data.db_session import db_session as db_sess
+from data.db_session import get_session
 
 from data.models.menus import Menu
 from data.models.users import User
@@ -60,7 +60,7 @@ def categories_add():
 @login_required
 def category_edit(category_id):
     abort_if_user()
-    category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).first()
+    category = get_session().query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).first()
     if not category:
         abort(404)
     form = CategoryForm()
@@ -89,7 +89,7 @@ def category_edit(category_id):
 @login_required
 def category_delete(category_id):
     abort_if_user()
-    category = db_sess.query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).first()
+    category = get_session().query(Category).filter(Category.menu == current_user.menu, Category.id == category_id).first()
     if not category:
         abort(404)
     if category.menu_items:
