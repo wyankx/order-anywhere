@@ -32,6 +32,7 @@ from data.models.profile_types import ProfileType
 from data.models.users import User
 from data.models.restaurants import Restaurant
 from data.models.menu_items import MenuItem
+from flask_socketio import SocketIO
 
 
 app = api.app
@@ -44,6 +45,8 @@ app.config['SQLALCHEMY_POOL_SIZE'] = 20
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+socketio = SocketIO(app)
 
 
 @app.teardown_appcontext
@@ -96,4 +99,4 @@ if __name__ == '__main__':
     app.register_blueprint(order.blueprint)
 
     port = int(os.environ.get('PORT', 3000))
-    app.run(host='0.0.0.0', port=port)
+    socketio.run(app, host='0.0.0.0', port=port)
