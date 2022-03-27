@@ -9,5 +9,6 @@ psycopg2-binary==2.9.3
 Werkzeug==2.0.3
 WTForms==3.0.1
 config==0.5.1
-flask_restful==0.3.9
+flask-restful==0.3.9
 requests==2.27.1
+flask-socketio==5.1.1
