@@ -41,11 +41,14 @@ def restaurant_edit():
             response = render_template('form.html', title='Изменение ресторана', form=form)
             return response
         restaurant = get_session().query(Restaurant).get(current_user.id)
+        restaurant.redirect_after_send_order = form.redirect_after_send_order.data
         restaurant.title = form.title.data
         if form.logo.data:
             f = request.files['logo']
             restaurant.profile_image = f.read()
         get_session().commit()
         return redirect('/settings/general')
+    form.redirect_after_send_order.data = current_user.redirect_after_send_order
+    form.title.data = current_user.title
     response = render_template('form.html', title='Изменение ресторана', form=form)
     return response

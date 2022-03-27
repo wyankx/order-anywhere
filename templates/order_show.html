@@ -14,7 +14,7 @@
     <div class="card" style="margin-left: 10vmin; margin-right: 10vmin; margin-top: 2vmin; padding: 4rem">
         <div class="card-body">
             <h2>Организация</h2>
-            <select class="form-select" aria-label="Organisation select" style="width: 15rem" onchange="restaurant_place_update(this);">
+            <select class="form-select" aria-label="Organisation select" style="width: 15rem" onchange="restaurantPlaceUpdate(this);">
                 {% for place in order.restaurant.places %}
                     <option value="{{ place.id }}"{% if place.id == order.restaurant_place_id %} selected{% endif %}>{{ place.title }}</option>
                 {% endfor %}
@@ -28,7 +28,7 @@
                         </div>
                         <div class="d-flex" style="align-items: center">
                             <p style="align-items: center; margin: 0">
-                                <input type="number" step="1" min="1" value="{{ order_item.count }}" required class="form-control" placeholder="Кол-во" name="count_{{ order_item.id }}" style="margin-right: 1vw; width:4rem" oninput="count_update(this);">
+                                <input type="number" step="1" min="1" value="{{ order_item.count }}" required class="form-control" placeholder="Кол-во" name="count_{{ order_item.id }}" style="margin-right: 1vw; width:4rem" oninput="countUpdate(this);">
                                 <h5 style="margin-right: 2vw; width:10rem">Цена: <span>{{ order_item.menu_item.price }}</span></h5>
                                 <a type="button" class="btn btn-danger position-relative" href="/order/{{ restaurant.id }}/delete_item/{{ order_item.id }}">
                                     Удалить
@@ -40,16 +40,18 @@
             {% endfor %}
             <hr>
             <div class="d-flex" style="justify-content: space-between">
-                <a type="button" class="btn btn-primary position-relative" href="/order/{{ restaurant.id }}/pay">
-                    Оплата
-                </a>
+                <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
+                    <input type="hidden" name="new_state" id="new_state" value="Awaiting payment">
+                    <input type="hidden" name="back_redir_to" id="back_redir_to" value="{% if restaurant.redirect_after_send_order %}{{ restaurant.redirect_after_send_order }}{% else %}{{ url_for('order.order_show', restaurant_id=restaurant.id) }}{% endif %}">
+                    <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Оплата">
+                </form>
                 <h3 style="margin-right: 12vw">Сумма: <span id="grand_total">{{ order.price }}</span></h3>
             </div>
         </div>
     </div>
 
     <script>
-        function restaurant_place_update(field) {
+        function restaurantPlaceUpdate(field) {
             let id = field.value;
             console.log("RESTAURANT PLACE UPDATE: id: " + id);
 
@@ -61,27 +63,29 @@
             http.send(send_data);
         }
 
-        function count_update(field) {
+        function countUpdate(field) {
             let id = field.name.split('_')[field.name.split('_').length - 1];
             let count = field.value;
             if (count > 0) {
                 console.log("COUNT UPDATE: field: " + field.value + ", name: " + count + ", id: " + id);
 
-                var url = `${window.location.origin}/api/order/{{ order.id }}/${id}`
+                var url = `${window.location.origin}/api/order/{{ order.id }}/${id}`;
                 let http = new XMLHttpRequest();
                 http.open("PUT", url, true);
                 http.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
                 let send_data = `count=${count}`;
                 http.send(send_data);
 
-                var url = `${window.location.origin}/api/order/{{ order.id }}`
-                setTimeout(() => { fetch(url)
-                    .then(function(response) {
-                        return response.json();
-                    })
-                    .then(function(jsonResponse) {
-                        document.getElementById('grand_total').textContent=jsonResponse['price'];
-                    }) }, 150);
+                var url = `${window.location.origin}/api/order/{{ order.id }}`;
+                setTimeout(() => {
+                    fetch(url)
+                        .then(function (response) {
+                            return response.json();
+                        })
+                        .then(function (jsonResponse) {
+                            document.getElementById('grand_total').textContent = jsonResponse['price'];
+                        })
+                }, 150);
             }
         }
     </script>

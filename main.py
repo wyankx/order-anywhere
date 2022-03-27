@@ -32,6 +32,7 @@ from data.models.profile_types import ProfileType
 from data.models.users import User
 from data.models.restaurants import Restaurant
 from data.models.menu_items import MenuItem
+import views
 
 
 app = api.app
@@ -78,6 +79,9 @@ def load_user(profile_id):
 # Main page
 @app.route('/')
 def main_page():
+    if current_user.is_authenticated:
+        if current_user.__class__.__name__ == 'Restaurant':
+            return render_template('main_page.html', title='Order anywhere', restaurant=current_user)
     return render_template('main_page.html', title='Order anywhere')
 
 
@@ -91,4 +95,4 @@ if __name__ == '__main__':
     app.register_blueprint(order.blueprint)
 
     port = int(os.environ.get('PORT', 3000))
-    socketio.run(app, host='0.0.0.0', port=port)
+    socketio.run(app, host='0.0.0.0', port=port, debug=True, log_output=True)

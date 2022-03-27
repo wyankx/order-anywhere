@@ -10,4 +10,5 @@ class RestaurantRegisterForm(FlaskForm):
     login = StringField('Логин', validators=[DataRequired()], render_kw={'class': 'form-control'})
     password = PasswordField('Пароль', validators=[DataRequired()], render_kw={'class': 'form-control'})
     repeat_password = PasswordField('Повторите пароль', validators=[DataRequired()], render_kw={'class': 'form-control'})
+    redirect_after_send_order = StringField('Куда направлять клиента после отправки заказа', render_kw={'class': 'form-control'})
     submit = SubmitField('Зарегистрироваться', render_kw={'class': 'btn btn-primary'})

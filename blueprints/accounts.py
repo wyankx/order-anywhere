@@ -81,7 +81,8 @@ def restaurant_register():
 
         restaurant = Restaurant(
             title=form.title.data,
-            login=form.login.data
+            login=form.login.data,
+            redirect_after_send_order=form.redirect_after_send_order.data
         )
         restaurant.set_password(form.password.data)
         profile = ProfileType(

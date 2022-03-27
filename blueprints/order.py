@@ -1,9 +1,13 @@
 import os
 
-from operations import abort_if_restaurant
+from operations import abort_if_restaurant, abort_if_user
 
 from flask import Blueprint, redirect, render_template, request, make_response, abort, url_for
 from flask_login import login_required, login_user, logout_user, current_user
+
+from flask_socketio import join_room
+from api import socketio
+from flask_socketio import emit
 
 import requests
 
@@ -42,7 +46,7 @@ def get_order(restaurant_id):
         return 'No places'
     if not restaurant:
         abort(404)
-    order = get_session().query(Order).filter(Order.user == user, Order.restaurant == restaurant).first()
+    order = get_session().query(Order).filter(Order.user == user, Order.restaurant == restaurant, Order.state == 'Is not sent').first()
     if not order:
         order = Order(
             price=0,
@@ -52,7 +56,7 @@ def get_order(restaurant_id):
         )
         get_session().add(order)
         get_session().commit()
-    return requests.get(request.host_url + f'api/order/{order.id}', cookies=request.cookies.to_dict()).json()
+    return requests.get(request.host_url + f'api/order/{order.id}', cookies=request.cookies).json()
 
 
 def no_places():
@@ -127,3 +131,37 @@ def order_show(restaurant_id):
         return no_places()
     restaurant = get_session().query(Restaurant).get(restaurant_id)
     return render_template('order_show.html', order=order, restaurant=restaurant, title='Заказ')
+
+
+@blueprint.route('/order/restaurant_place_connect', methods=['POST'])
+@login_required
+def restaurant_place_connect():
+    abort_if_user()
+    restaurant_place_id = int(request.values['restaurant_place_id'])
+    restaurant_place = get_session().query(RestaurantPlace).filter(RestaurantPlace.id == restaurant_place_id, RestaurantPlace.restaurant_id == current_user.id).first()
+    if not restaurant_place:
+        abort(404)
+    return redirect(f'/order/restaurant_place_orders/{restaurant_place_id}')
+
+
+@blueprint.route('/order/restaurant_place_orders/<int:restaurant_place_id>')
+@login_required
+def restaurant_place_orders(restaurant_place_id):
+    restaurant_place = get_session().query(RestaurantPlace).filter(RestaurantPlace.id == restaurant_place_id, RestaurantPlace.restaurant_id == current_user.id).first()
+    orders_in_progress = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'In progress').all()
+    orders_ready = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'Ready').all()
+    orders_awaiting_payment = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'Awaiting payment').all()
+    if not restaurant_place:
+        abort(404)
+    return render_template('restaurant_place_orders_show.html', restaurant_place=restaurant_place, orders_in_progress=orders_in_progress, orders_ready=orders_ready, orders_awaiting_payment=orders_awaiting_payment)
+
+
+@blueprint.route('/order/<int:order_id>/set_state', methods=['POST'])
+@login_required
+def set_order_state(order_id):
+    api_response = requests.post(request.host_url + f'api/order/{order_id}', data={'new_state': request.values['new_state']}, cookies=request.cookies.to_dict())
+    if api_response.status_code != 200:
+        abort(api_response.status_code)
+    api_response = api_response.json()
+    if api_response['successfully']:
+        return redirect(request.values['back_redir_to'])
