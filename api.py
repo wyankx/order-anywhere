@@ -1,3 +1,6 @@
+import os
+import datetime
+
 from flask import make_response, url_for, Flask, jsonify, redirect, request
 from flask_login import login_required, login_user, logout_user, current_user
 
@@ -5,7 +8,7 @@ from flask_restful import reqparse, abort, Api, Resource
 import werkzeug
 
 from data.db_session import get_session
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 
 from operations import abort_if_restaurant, abort_if_user
 
@@ -29,13 +32,14 @@ app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
 )
 app.config['SQLALCHEMY_POOL_SIZE'] = 20
 
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='threading')
 
 
 # Images
 @app.route('/menu_item_image/<int:menu_item_id>')
 def menu_item_image(menu_item_id):
     image_binary = get_session().query(MenuItem).get(menu_item_id).item_image
+    print(f'IMAGE LOAD: menu_item_id: {menu_item_id}')
     if not image_binary:
         return redirect('/static/no_image/item.png')
     response = make_response(image_binary)
@@ -304,7 +308,7 @@ class OrderListResource(Resource):
         if current_user.__class__ == 'Restaurant':
             if order.restaurant_id == current_user.id:
                 abort(404)
-        return jsonify(order.to_dict(only=('id', 'price', 'state', 'restaurant.id', 'restaurant.menu.id', 'restaurant.places.id', 'restaurant.places.title', 'user.id', 'user.name', 'order_items.id', 'order_items.count', 'order_items.menu_item.title', 'order_items.menu_item.price', 'restaurant_place_id')))
+        return jsonify(order.to_dict(only=('id', 'price', 'state', 'restaurant.id', 'restaurant.menu.id', 'restaurant.places.id', 'restaurant.places.title', 'user.id', 'user.name', 'user.surname', 'order_items.id', 'order_items.count', 'order_items.menu_item.title', 'order_items.menu_item.price', 'restaurant_place_id')))
 
     @login_required
     def post(self, order_id):  # For change state of order
@@ -321,15 +325,12 @@ class OrderListResource(Resource):
 
         if not order:
             abort(404)
-        if args['state'] not in allowed_state:
+        if args['new_state'] not in allowed_state:
             abort(403)
 
-        if order.state == 'Is not sent' and args['new_state'] == 'Awaiting payment':
-            socketio.emit('order_add', {'order_id': order_id}, to=order.restaurant_place_id)
-        else:
-            socketio.emit('order_change', {'order_id': order_id}, to=order.restaurant_place_id)
+        socketio.emit('order_change', {'order_id': order_id}, room=str(order.restaurant_place_id), namespace='/')
 
-        order.state = args.state
+        order.state = args['new_state']
         get_session().commit()
         return jsonify({'successfully': True})
 
