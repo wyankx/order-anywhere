@@ -321,7 +321,7 @@ class OrderListResource(Resource):
             allowed_state = ['Awaiting payment']
         if current_user.__class__.__name__ == 'Restaurant':
             order = get_session().query(Order).filter(Order.id == order_id, Order.restaurant_id == current_user.id).first()
-            allowed_state = ['In progress', 'Ready']
+            allowed_state = ['In progress', 'Ready', 'Finished']
 
         if not order:
             abort(404)

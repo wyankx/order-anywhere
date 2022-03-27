@@ -12,9 +12,11 @@
                     <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
-                <p>
-                    <a type="button" href="/order/{{ order.id }}/set_state?state=Ready&back_redir_to={{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}" class="btn btn-primary">Готово</a>
-                </p>
+                <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
+                    <input type="hidden" name="new_state" id="new_state" value="Ready">
+                    <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                    <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Готово">
+                </form>
             </div>
         {% endfor %}
     </div><hr>
@@ -28,9 +30,11 @@
                     <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
-                <p>
-                    <a type="button" href="/order/{{ order.id }}/set_state?state=Delete&back_redir_to={{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}" class="btn btn-danger">Удалить</a>
-                </p>
+                <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
+                    <input type="hidden" name="new_state" id="new_state" value="Finished">
+                    <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                    <input type="submit" id="submit" name="submit" class="btn btn-danger" value="Выдан">
+                </form>
             </div>
         {% endfor %}
     </div><hr>
@@ -44,9 +48,11 @@
                     <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
-                <p>
-                    <a type="button" href="/order/{{ order.id }}/set_state?state=In progress&back_redir_to={{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}" class="btn btn-primary">Готовится</a>
-                </p>
+                <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
+                    <input type="hidden" name="new_state" id="new_state" value="In progress">
+                    <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                    <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Готовится">
+                </form>
             </div>
         {% endfor %}
     </div><hr>
@@ -84,9 +90,11 @@
                                     <h6>${order.id}</h6><hr>
                                     ${order_items}<hr>
                                     <h2>${order.price}руб.</h2><br>
-                                    <p>
-                                        <a type="button" href="/order/${order.id}/set_state?state=Ready&back_redir_to={{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}" class="btn btn-primary">Готово</a>
-                                    </p>
+                                    <form method="post" action="/order/${order.id}/set_state" enctype="multipart/form-data">
+                                        <input type="hidden" name="new_state" id="new_state" value="Ready">
+                                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                                        <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Готово">
+                                    </form>
                                 </div>`
                         } else if (order.state === 'Ready') {
                             document.getElementById(order.state).innerHTML +=
@@ -95,9 +103,11 @@
                                     <h6>${order.id}</h6><hr>
                                     ${order_items}<hr>
                                     <h2>${order.price}руб.</h2><br>
-                                    <p>
-                                        <a type="button" href="/order/${order.id}/set_state?state=Delete&back_redir_to={{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}" class="btn btn-primary">Удалить</a>
-                                    </p>
+                                    <form method="post" action="/order/${order.id}/set_state" enctype="multipart/form-data">
+                                        <input type="hidden" name="new_state" id="new_state" value="Finished">
+                                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                                        <input type="submit" id="submit" name="submit" class="btn btn-danger" value="Выдан">
+                                    </form>
                                 </div>`;
                         } else if (order.state === 'Awaiting payment') {
                             document.getElementById(order.state).innerHTML +=
@@ -106,9 +116,11 @@
                                     <h6>${order.id}</h6><hr>
                                     ${order_items}<hr>
                                     <h2>${order.price}руб.</h2><br>
-                                    <p>
-                                        <a type="button" href="/order/${order.id}/set_state?state=In progress&back_redir_to={{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}" class="btn btn-primary">Готовится</a>
-                                    </p>
+                                    <form method="post" action="/order/${order.id}/set_state" enctype="multipart/form-data">
+                                        <input type="hidden" name="new_state" id="new_state" value="In progress">
+                                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                                        <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Готовится">
+                                    </form>
                                 </div>`;
                         }
                     })

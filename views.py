@@ -16,4 +16,3 @@ def socket_connect_restaurant_place(data):
     if not restaurant_place:
         abort(404)
     join_room(str(restaurant_place_id))
-    print(request.sid)
