@@ -8,7 +8,7 @@
             <div class="card" id="{{ order.id }}" style="margin: 3rem; width: 40rem; padding: 1rem;">
                 <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
                 <h6>{{ order.id }}</h6><hr>
-                {% for order_item in orders %}
+                {% for order_item in order.order_items %}
                     <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
@@ -24,7 +24,7 @@
             <div class="card" id="{{ order.id }}" style="margin: 3rem; width: 40rem; padding: 1rem;">
                 <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
                 <h6>{{ order.id }}</h6><hr>
-                {% for order_item in orders %}
+                {% for order_item in order.order_items %}
                     <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
@@ -40,7 +40,7 @@
             <div class="card" id="{{ order.id }}" style="margin: 3rem; width: 40rem; padding: 1rem;">
                 <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
                 <h6>{{ order.id }}</h6><hr>
-                {% for order_item in orders %}
+                {% for order_item in order.order_items %}
                     <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
@@ -71,7 +71,7 @@
                     .then(function(jsonResponse) {
                         let order = jsonResponse;
                         let order_items = '';
-                        for (let order_item in order.order) {
+                        for (let order_item of order.order_items) {
                             order_items = order_items + `<p>${order_item.menu_item.title} Кол-во: ${order_item.count}</p><br>`
                         }
                         if (document.getElementById(order.id)) {
