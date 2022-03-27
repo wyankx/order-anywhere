@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="d-flex" style="justify-content: space-between; align-items: center; margin-top: 1rem">
+        <div style="justify-self: center; flex-grow: 1">
+            <h1 style="text-align: center">{{ restaurant.title }}</h1>
+        </div>
+        <div style="margin-bottom: 0; margin-right: 3rem">
+            <a type="button" class="btn btn-primary position-relative" href="/order/{{ restaurant.id }}/show">
+                Корзина
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {{ order.order_items|length }}
+                    <span class="visually-hidden">order items count</span>
+                </span>
+            </a>
+        </div>
+    </div>
+    <div class="d-flex align-items-start">
+        <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical" style="padding: 2rem">
+            <p style="text-align: center">Категории</p>
+            {% for category in categories %}
+                {% if loop.first %}
+                    <button class="nav-link active" id="v-pills-{{ category.id }}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-{{ category.id }}" type="button" role="tab" aria-controls="v-pills-category-{{ category.id }}" aria-selected="true">{{ category.title }}</button>
+                {% else %}
+                    <button class="nav-link" id="v-pills-{{ category.id }}-tab" data-bs-toggle="pill" data-bs-target="#v-pills-{{ category.id }}" type="button" role="tab" aria-controls="v-pills-category-{{ category.id }}" aria-selected="false">{{ category.title }}</button>
+                {% endif %}
+            {% endfor %}
+        </div>
+        <div class="tab-content" id="v-pills-tabContent">
+            {% for category in categories %}
+                    <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="v-pills-{{ category.id }}" role="tabpanel" aria-labelledby="v-pills-{{ category.id }}">
+                        <div class="d-flex" style="flex-wrap: wrap; align-items: start;">
+                            {% for menu_item in category.menu_items %}
+                                <div class="card" style="width: 18rem; margin: 1rem;">
+                                    <img src="/menu_item_image/{{ menu_item.id }}" class="card-img-top" alt="Изображение продукта">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ menu_item.title }}</h5>
+                                        <p class="card-text">{{ menu_item.price }}руб.</p>
+                                        <form action="/order/{{ restaurant.id }}/add_item/{{ menu_item.id }}" class="d-flex" style="justify-content: space-between" method="get">
+                                            <div class="col-auto">
+                                                <button type="submit" class="btn btn-primary">Добавить в заказ</button>
+                                            </div>
+                                            <div style="width: 6rem">
+                                                <label for="count" class="visually-hidden">Кол-во</label>
+                                                <input type="number" step="1" min="1" value="1" required class="form-control" placeholder="Кол-во" name="count">
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

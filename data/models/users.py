@@ -21,7 +21,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     login = sqlalchemy.Column(sqlalchemy.String, index=True)
     password = sqlalchemy.Column(sqlalchemy.String)
 
-    orders = orm.relation('Order', back_populates='user')
+    orders = orm.relation('Order', back_populates='user', lazy='subquery')
 
     def set_password(self, password):
         self.password = generate_password_hash(password)

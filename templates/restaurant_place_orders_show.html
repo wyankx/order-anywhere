@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 style="text-align: center">Заказы в организации {{ restaurant_place.title }}</h1><br>
+    <h1 style="text-align: center">Готовятся</h1>
+    <div id="In progress" class="d-flex" style="flex-wrap: wrap;">
+        {% for order in orders_in_progress %}
+            <div class="card" id="{{ order.id }}" style="margin: 3rem; width: 40rem; padding: 1rem;">
+                <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
+                <h6>{{ order.id }}</h6><hr>
+                {% for order_item in order.order_items %}
+                    <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
+                {% endfor %}<hr>
+                <h2>{{ order.price }}руб.</h2><br>
+                <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
+                    <input type="hidden" name="new_state" id="new_state" value="Ready">
+                    <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                    <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Готово">
+                </form>
+            </div>
+        {% endfor %}
+    </div><hr>
+    <h1 style="text-align: center">Готовы</h1>
+    <div id="Ready" class="d-flex" style="flex-wrap: wrap;">
+        {% for order in orders_ready %}
+            <div class="card" id="{{ order.id }}" style="margin: 3rem; width: 40rem; padding: 1rem;">
+                <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
+                <h6>{{ order.id }}</h6><hr>
+                {% for order_item in order.order_items %}
+                    <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
+                {% endfor %}<hr>
+                <h2>{{ order.price }}руб.</h2><br>
+                <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
+                    <input type="hidden" name="new_state" id="new_state" value="Finished">
+                    <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                    <input type="submit" id="submit" name="submit" class="btn btn-danger" value="Выдан">
+                </form>
+            </div>
+        {% endfor %}
+    </div><hr>
+    <h1 style="text-align: center">Ожидают оплаты</h1>
+    <div id="Awaiting payment" class="d-flex" style="flex-wrap: wrap;">
+        {% for order in orders_awaiting_payment %}
+            <div class="card" id="{{ order.id }}" style="margin: 3rem; width: 40rem; padding: 1rem;">
+                <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
+                <h6>{{ order.id }}</h6><hr>
+                {% for order_item in order.order_items %}
+                    <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
+                {% endfor %}<hr>
+                <h2>{{ order.price }}руб.</h2><br>
+                <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
+                    <input type="hidden" name="new_state" id="new_state" value="In progress">
+                    <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                    <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Готовится">
+                </form>
+            </div>
+        {% endfor %}
+    </div><hr>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.5/socket.io.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            var socket = io.connect(window.location.origin)
+
+            socket.on('connect', function () {
+                console.log(window.location.pathname)
+                let restaurant_place_id = window.location.pathname.split('/')[window.location.pathname.split('/').length - 1]
+                socket.emit("restaurant_place_connect", {"restaurant_place_id": restaurant_place_id});
+            })
+
+            socket.on('order_change', function (msg) {
+                let url = `${window.location.origin}/api/order/${msg['order_id']}`
+                fetch(url)
+                    .then(function(response) {
+                        return response.json();
+                    })
+                    .then(function(jsonResponse) {
+                        let order = jsonResponse;
+                        let order_items = '';
+                        for (let order_item of order.order_items) {
+                            order_items = order_items + `<p>${order_item.menu_item.title} Кол-во: ${order_item.count}</p><br>`
+                        }
+                        if (document.getElementById(order.id)) {
+                            document.getElementById(order.id).remove();
+                        }
+                        if (order.state === 'In progress') {
+                            document.getElementById(order.state).innerHTML +=
+                                `<div class="card" id="${order.id}" style="margin: 3rem; width: 40rem; padding: 1rem;">
+                                    <h2>${order.user.name} ${order.user.surname}</h2><br>
+                                    <h6>${order.id}</h6><hr>
+                                    ${order_items}<hr>
+                                    <h2>${order.price}руб.</h2><br>
+                                    <form method="post" action="/order/${order.id}/set_state" enctype="multipart/form-data">
+                                        <input type="hidden" name="new_state" id="new_state" value="Ready">
+                                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                                        <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Готово">
+                                    </form>
+                                </div>`
+                        } else if (order.state === 'Ready') {
+                            document.getElementById(order.state).innerHTML +=
+                                `<div class="card" id="${order.id}" style="margin: 3rem; width: 40rem; padding: 1rem;">
+                                    <h2>${order.user.name} ${order.user.surname}</h2><br>
+                                    <h6>${order.id}</h6><hr>
+                                    ${order_items}<hr>
+                                    <h2>${order.price}руб.</h2><br>
+                                    <form method="post" action="/order/${order.id}/set_state" enctype="multipart/form-data">
+                                        <input type="hidden" name="new_state" id="new_state" value="Finished">
+                                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                                        <input type="submit" id="submit" name="submit" class="btn btn-danger" value="Выдан">
+                                    </form>
+                                </div>`;
+                        } else if (order.state === 'Awaiting payment') {
+                            document.getElementById(order.state).innerHTML +=
+                                `<div class="card" id="${order.id}" style="margin: 3rem; width: 40rem; padding: 1rem;">
+                                    <h2>${order.user.name} ${order.user.surname}</h2><br>
+                                    <h6>${order.id}</h6><hr>
+                                    ${order_items}<hr>
+                                    <h2>${order.price}руб.</h2><br>
+                                    <form method="post" action="/order/${order.id}/set_state" enctype="multipart/form-data">
+                                        <input type="hidden" name="new_state" id="new_state" value="In progress">
+                                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{{ url_for('order.restaurant_place_orders', restaurant_place_id=restaurant_place.id) }}">
+                                        <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Готовится">
+                                    </form>
+                                </div>`;
+                        }
+                    })
+            })
+        })
+    </script>
+{% endblock %}

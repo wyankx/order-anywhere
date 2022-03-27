@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% for restaurant in response %}
+        <br>
+        <div class="card" style="padding: 15px">
+            <div class="d-flex" style="justify-content: space-between;">
+                <div>
+                    <h1>{{ restaurant.title }}</h1>
+                </div>
+                <div class="d-flex" style="align-items: center">
+                    <p style="margin: 0;">
+                        <a class="btn btn-outline-primary" href="/order/{{ restaurant.id }}">Сделать заказ</a>
+                    </p>
+                </div>
+            </div>
+            <img src="/restaurant_image/{{ restaurant.id }}" alt="Логотип ресторана" style="width: 30vmin">
+        </div>
+    {% endfor %}
+    {% if not response %}
+        <h1 style="text-align: center">К сожалению по вашему запросу ничего не найдено.</h1>
+    {% endif %}
+{% endblock %}

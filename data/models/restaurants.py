@@ -21,11 +21,13 @@ class Restaurant(SqlAlchemyBase, UserMixin, SerializerMixin):
     login = sqlalchemy.Column(sqlalchemy.String, index=True)
     password = sqlalchemy.Column(sqlalchemy.String)
 
+    redirect_after_send_order = sqlalchemy.Column(sqlalchemy.String)
+
     menu_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menus.id'))
     menu = orm.relation('Menu')
 
-    places = orm.relation('RestaurantPlace', back_populates='restaurant')
-    orders = orm.relation('Order', back_populates='restaurant')
+    places = orm.relation('RestaurantPlace', back_populates='restaurant', lazy='subquery')
+    orders = orm.relation('Order', back_populates='restaurant', lazy='subquery')
 
     def set_password(self, password):
         self.password = generate_password_hash(password)

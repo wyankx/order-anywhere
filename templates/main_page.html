@@ -4,6 +4,15 @@
     {% if current_user.is_authenticated %}
         {% if current_user.__class__.__name__ == 'User' %}
         {% elif current_user.__class__.__name__ == 'Restaurant' %}
+            <h1 style="text-align: center">Просмотр и изменение заказов</h1>
+            <form action="/order/restaurant_place_connect" method="post" class="d-flex" style="justify-content: center" enctype="multipart/form-data">
+                <select id="restaurant_place_id" name="restaurant_place_id" class="form-select" style="width: 15rem; margin-right: 3rem">
+                    {% for place in restaurant.places %}
+                        <option value="{{ place.id }}"{% if loop.first %} selected{% endif %}>{{ place.title }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" class="btn btn-outline-primary" id="submit" name="submit" value="Подключится">
+            </form><hr>
         {% endif %}
     {% else %}
     {% endif %}
