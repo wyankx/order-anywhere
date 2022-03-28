@@ -22,4 +22,4 @@ class Order(SqlAlchemyBase, UserMixin, SerializerMixin):
     user_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
     user = orm.relation('User')
 
-    order_items = orm.relation('OrderItem', back_populates='order', lazy='subquery')
+    order_items = orm.relation('OrderItem', back_populates='order', lazy='subquery', cascade="all,delete", passive_deletes=True)

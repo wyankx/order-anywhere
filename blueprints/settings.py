@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 import requests
 
 from forms.restaurant_general_edit import RestaurantGeneralEditForm
+from forms.user_general_edit import UserGeneralEditForm
 
 blueprint = Blueprint(
     'settings',
@@ -17,7 +18,7 @@ def settings_redirect():
     if current_user.__class__.__name__ == 'Restaurant':
         return redirect('/settings/general')
     if current_user.__class__.__name__ == 'User':
-        return redirect('/')
+        return redirect('/settings/general')
 
 
 @blueprint.route('/settings/<string:current_setting>')
@@ -55,7 +56,7 @@ def settings(current_setting):
                         f'''<div class="card text-white bg-danger" style="padding: 10px; width: 30vw;">
                         <div class="card-header">Опасная зона</div>
                         <div class="card-body">
-                        <p class="d-flex" style="justify-content: space-between; align-items: center;">Удаление ресторана<a class="btn btn-danger" href="/restaurant_delete/{current_user.id}">Удалить ресторан</a></p>
+                        <p class="d-flex" style="justify-content: space-between; align-items: center;">Удаление ресторана<a class="btn btn-danger" href="/restaurant_delete">Удалить ресторан</a></p>
                         </div>
                         </div>'''
                 }
@@ -133,8 +134,37 @@ def settings(current_setting):
         }
     if current_user.__class__.__name__ == 'User':
         # Settings - dict with the following structure {setting: {type, html_markup}/{type, form, form_handler_url}}
-        setting_names = {}
-        settings = {}
+        setting_names = {'general': 'Основные'}
+
+        user_general_edit_form = UserGeneralEditForm()
+        user_general_edit_form.name.data = current_user.name
+        user_general_edit_form.surname.data = current_user.surname
+
+        settings = {
+            'general': [
+                {
+                    'type': 'html_markup',
+                    'html_markup':
+                        f'<h1>{current_user.name} {current_user.surname}</h1>'
+                },
+                {
+                    'title': 'Изменение данных',
+                    'type': 'Form',
+                    'form': user_general_edit_form,
+                    'form_handler_url': f'/user_edit'
+                },
+                {
+                    'type': 'html_markup',
+                    'html_markup':
+                        f'''<div class="card text-white bg-danger" style="padding: 10px; width: 30vw;">
+                        <div class="card-header">Опасная зона</div>
+                        <div class="card-body">
+                        <p class="d-flex" style="justify-content: space-between; align-items: center;">Удаление пользователя<a class="btn btn-danger" href="/user_delete">Удалить пользователя</a></p>
+                        </div>
+                        </div>'''
+                }
+            ]
+        }
     if current_setting not in setting_names.keys():
         abort(404)
     return render_template('settings.html', title=setting_names[current_setting],  current_setting=current_setting, settings=settings, setting_names=setting_names, error=request.args.get('error', None))

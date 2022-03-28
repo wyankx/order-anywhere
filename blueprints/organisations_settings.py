@@ -70,7 +70,7 @@ def organisation_delete(place_id):
         abort(404)
     form = SubmitForm()
     if form.validate_on_submit():
-        get_session().query(RestaurantPlace).filter(RestaurantPlace.id == place_id).delete()
+        get_session().delete(get_session().query(RestaurantPlace).filter(RestaurantPlace.id == place_id).first())
         get_session().commit()
         return redirect('/settings/organisations')
     response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить организацию {place.title}')
