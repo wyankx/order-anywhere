@@ -1,31 +1,15 @@
-import os
-
 from operations import abort_if_restaurant, abort_if_user
 
-from flask import Blueprint, redirect, render_template, request, make_response, abort, url_for
-from flask_login import login_required, login_user, logout_user, current_user
-
-from flask_socketio import join_room
-from api import socketio
-from flask_socketio import emit
+from flask import Blueprint, redirect, render_template, request, abort
+from flask_login import login_required, current_user
 
 import requests
 
-from forms.user_register import UserRegisterForm
-from forms.restaurant_register import RestaurantRegisterForm
-from forms.login import LoginForm
-from forms.menu_item import MenuItemForm
-from forms.category import CategoryForm
-from forms.submit import SubmitForm
-
 from data.db_session import get_session
 
-from data.models.menus import Menu
 from data.models.users import User
-from data.models.profile_types import ProfileType
 from data.models.menu_items import MenuItem
 from data.models.restaurants import Restaurant
-from data.models.categories import Category
 from data.models.orders import Order
 from data.models.order_items import OrderItem
 from data.models.restaurant_places import RestaurantPlace
@@ -165,3 +149,18 @@ def set_order_state(order_id):
     api_response = api_response.json()
     if api_response['successfully']:
         return redirect(request.values['back_redir_to'])
+
+
+@blueprint.route('/orders_show')
+@login_required
+def orders_show():
+    abort_if_restaurant()
+    orders = get_session().query(Order).filter(Order.user_id == current_user.id).all()
+    order_states_translate = {
+        'Is not sent': 'Не отправлен',
+        'Awaiting payment': 'Ожидает оплаты',
+        'In progress': 'Готовится',
+        'Ready': 'Готов',
+        'Finished': 'Выдан'
+    }
+    return render_template('user_orders_show.html', orders=orders, order_states_translate=order_states_translate, title='Ваши заказы')

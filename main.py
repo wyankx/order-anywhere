@@ -1,10 +1,7 @@
 import os
-import datetime
-import sqlite3
 
-from flask import Flask, render_template, abort, make_response
+from flask import render_template, make_response
 from flask_login import LoginManager, current_user
-from flask_wtf import CSRFProtect
 
 from data import db_session
 
@@ -31,8 +28,6 @@ from blueprints import order
 from data.models.profile_types import ProfileType
 from data.models.users import User
 from data.models.restaurants import Restaurant
-from data.models.menu_items import MenuItem
-import views
 
 
 app = api.app

@@ -9,7 +9,11 @@
                 <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
                 <h6>{{ order.id }}</h6><hr>
                 {% for order_item in order.order_items %}
-                    <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
+                    <div class="card" style="padding: 0.2rem; margin: 0.1rem;">
+                        <div class="d-flex" style="justify-content: space-between; align-items: center">
+                            <h5>Название: {{ order_item.menu_item.title }}</h5> <h5>Кол-во: {{ order_item.count }}</h5>
+                        </div>
+                    </div>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
                 <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
@@ -27,7 +31,11 @@
                 <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
                 <h6>{{ order.id }}</h6><hr>
                 {% for order_item in order.order_items %}
-                    <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
+                    <div class="card" style="padding: 0.2rem; margin: 0.1rem;">
+                        <div class="d-flex" style="justify-content: space-between; align-items: center">
+                            <h5>Название: {{ order_item.menu_item.title }}</h5> <h5>Кол-во: {{ order_item.count }}</h5>
+                        </div>
+                    </div>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
                 <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
@@ -45,7 +53,11 @@
                 <h2>{{ order.user.name }} {{ order.user.surname }}</h2><br>
                 <h6>{{ order.id }}</h6><hr>
                 {% for order_item in order.order_items %}
-                    <p>{{ order_item.menu_item.title }} Кол-во: {{ order_item.count }}</p><br>
+                    <div class="card" style="padding: 0.2rem; margin: 0.1rem;">
+                        <div class="d-flex" style="justify-content: space-between; align-items: center">
+                            <h5>Название: {{ order_item.menu_item.title }}</h5> <h5>Кол-во: {{ order_item.count }}</h5>
+                        </div>
+                    </div>
                 {% endfor %}<hr>
                 <h2>{{ order.price }}руб.</h2><br>
                 <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
@@ -78,7 +90,7 @@
                         let order = jsonResponse;
                         let order_items = '';
                         for (let order_item of order.order_items) {
-                            order_items = order_items + `<p>${order_item.menu_item.title} Кол-во: ${order_item.count}</p><br>`
+                            order_items = order_items + `<div class="card" style="padding: 0.2rem; margin: 0.1rem;"><div class="d-flex" style="justify-content: space-between; align-items: center"><h5>Название: ${order_item.menu_item.title}</h5> <h5>Кол-во: ${order_item.count}</h5></div></div>`
                         }
                         if (document.getElementById(order.id)) {
                             document.getElementById(order.id).remove();

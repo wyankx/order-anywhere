@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 style="text-align: center">Заказы пользователя {{ current_user.name }} {{ current_user.surname }}</h1>
+    {% for order in orders %}
+        <div class="card" id="{{ order.id }}" style="margin: 3rem; width: 40rem; padding: 1rem;">
+            <div class="d-flex" style="justify-content: space-between">
+                <h2>{{ order.restaurant.title }}</h2><span class="badge rounded-pill bg-primary" style="width: 10rem; margin: 0; padding: 0.2rem; height: min-content">{{ order_states_translate[order.state] }}</span>
+            </div><br>
+            <h6>{{ order.id }}</h6><hr>
+            {% for order_item in order.order_items %}
+                <div class="card" style="padding: 0.2rem; margin: 0.1rem;">
+                    <div class="d-flex" style="justify-content: space-between; align-items: center">
+                        <h5>Название: {{ order_item.menu_item.title }}</h5> <h5>Кол-во: {{ order_item.count }}</h5>
+                    </div>
+                </div>
+            {% endfor %}<hr>
+            <h2>{{ order.price }}руб.</h2><br>
+        </div>
+    {% endfor %}
+{% endblock %}

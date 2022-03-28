@@ -1,11 +1,10 @@
 import sqlalchemy
 from sqlalchemy import orm
 from data.db_session import SqlAlchemyBase
-from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
 
 
-class OrderItem(SqlAlchemyBase, UserMixin, SerializerMixin):
+class OrderItem(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'order_items'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)

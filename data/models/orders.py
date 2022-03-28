@@ -1,17 +1,16 @@
 import sqlalchemy
 from sqlalchemy import orm
 from data.db_session import SqlAlchemyBase
-from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
 
 
-class Order(SqlAlchemyBase, UserMixin, SerializerMixin):
+class Order(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'orders'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
     price = sqlalchemy.Column(sqlalchemy.Integer)
-    state = sqlalchemy.Column(sqlalchemy.String, default='Is not sent')  # Is not sent/Awaiting payment/In progress/Ready
+    state = sqlalchemy.Column(sqlalchemy.String, default='Is not sent')  # Is not sent/Awaiting payment/In progress/Ready/Finished
 
     restaurant_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('restaurants.id'))
     restaurant = orm.relation('Restaurant')
