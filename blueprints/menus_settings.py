@@ -1,26 +1,16 @@
-import os
-
 import requests
 
 from operations import abort_if_user
 
-from flask import Blueprint, redirect, render_template, request, make_response, abort, url_for
-from flask_login import login_required, login_user, logout_user, current_user
+from flask import Blueprint, redirect, render_template, request, abort, url_for
+from flask_login import login_required, current_user
 
-from forms.user_register import UserRegisterForm
-from forms.restaurant_register import RestaurantRegisterForm
-from forms.login import LoginForm
 from forms.menu_item import MenuItemForm
 from forms.category import CategoryForm
 from forms.submit import SubmitForm
 
 from data.db_session import get_session
 
-from data.models.menus import Menu
-from data.models.users import User
-from data.models.profile_types import ProfileType
-from data.models.menu_items import MenuItem
-from data.models.restaurants import Restaurant
 from data.models.categories import Category
 
 blueprint = Blueprint(

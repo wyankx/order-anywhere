@@ -1,20 +1,18 @@
 import os
 import datetime
 
-from flask import make_response, url_for, Flask, jsonify, redirect, request
-from flask_login import login_required, login_user, logout_user, current_user
+from flask import make_response, Flask, jsonify, redirect, request
+from flask_login import login_required, current_user
 
 from flask_restful import reqparse, abort, Api, Resource
 import werkzeug
 
 from data.db_session import get_session
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO
 
 from operations import abort_if_restaurant, abort_if_user
 
 from data.models.menus import Menu
-from data.models.users import User
-from data.models.profile_types import ProfileType
 from data.models.menu_items import MenuItem
 from data.models.restaurants import Restaurant
 from data.models.categories import Category
@@ -378,7 +376,7 @@ class OrderItemResource(Resource):
         order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
         if not order:
             abort(404)
-        get_session().delete(order_item = get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first())
+        get_session().delete(get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first())
         get_session().commit()
         update_order_price(order_id)
         return jsonify({'successfully': True})

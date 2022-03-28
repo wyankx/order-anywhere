@@ -19,6 +19,7 @@
             <div class="d-flex" style="align-items: center">
                 {% if current_user.is_authenticated %}
                     {% if current_user.__class__.__name__ == 'User' %}
+                        <a type="button" class="btn btn-primary" style="margin-right: 6vw" href="/orders_show">Заказы</a>
                         <form class="d-flex" style="align-items: center; margin-right: 5vw" action="/search" method="get">
                             <input class="form-control" type="search" placeholder="Поиск ресторанов" aria-label="Search" name="search">
                             <button class="btn btn-outline-success" type="submit">Найти</button>
