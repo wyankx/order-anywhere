@@ -173,7 +173,7 @@ class MenuItemResource(Resource):
         menu_item = get_session().query(MenuItem).filter(MenuItem.menu == restaurant.menu, MenuItem.id == menu_item_id).first()
         if not menu_item:
             abort(404)
-        get_session().query(MenuItem).filter(MenuItem.id == menu_item_id).delete()
+        get_session().delete(get_session().query(MenuItem).filter(MenuItem.id == menu_item_id).first())
         get_session().commit()
         return jsonify({'successfully': True})
 
@@ -278,7 +278,7 @@ class MenuCategoryResource(Resource):
             response = jsonify({'successfully': False, 'errors': errors})
             return response
 
-        get_session().query(Category).filter(Category.id == category_id).delete()
+        get_session().delete(get_session().query(Category).filter(Category.id == category_id).first())
         get_session().commit()
         return jsonify({'successfully': True})
 
@@ -378,7 +378,7 @@ class OrderItemResource(Resource):
         order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
         if not order:
             abort(404)
-        order_item = get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).delete()
+        get_session().delete(order_item = get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first())
         get_session().commit()
         update_order_price(order_id)
         return jsonify({'successfully': True})

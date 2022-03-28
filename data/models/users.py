@@ -12,7 +12,6 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    register_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     profile_id = sqlalchemy.Column(sqlalchemy.Integer)
 
     name = sqlalchemy.Column(sqlalchemy.String)
@@ -21,7 +20,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     login = sqlalchemy.Column(sqlalchemy.String, index=True)
     password = sqlalchemy.Column(sqlalchemy.String)
 
-    orders = orm.relation('Order', back_populates='user', lazy='subquery')
+    orders = orm.relation('Order', back_populates='user', lazy='subquery', cascade="all,delete", passive_deletes=True)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)

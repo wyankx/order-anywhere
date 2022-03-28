@@ -15,4 +15,4 @@ class Category(SqlAlchemyBase, UserMixin, SerializerMixin):
     menu_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menus.id'))
     menu = orm.relation('Menu')
 
-    menu_items = orm.relation('MenuItem', back_populates='category', lazy='subquery')
+    menu_items = orm.relation('MenuItem', back_populates='category', lazy='subquery', cascade="all,delete", passive_deletes=True)

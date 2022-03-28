@@ -24,7 +24,7 @@ from blueprints import settings
 from blueprints import accounts
 from blueprints import organisations_settings
 from blueprints import menus_settings
-from blueprints import restaurant_settings
+from blueprints import general_settings
 from blueprints import search
 from blueprints import order
 
@@ -91,8 +91,8 @@ if __name__ == '__main__':
     app.register_blueprint(organisations_settings.blueprint)
     app.register_blueprint(menus_settings.blueprint)
     app.register_blueprint(search.blueprint)
-    app.register_blueprint(restaurant_settings.blueprint)
+    app.register_blueprint(general_settings.blueprint)
     app.register_blueprint(order.blueprint)
 
     port = int(os.environ.get('PORT', 3000))
-    socketio.run(app, host='0.0.0.0', port=port, debug=True, log_output=True)
+    socketio.run(app, host='0.0.0.0', port=port, log_output=True)

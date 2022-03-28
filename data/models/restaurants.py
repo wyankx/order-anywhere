@@ -12,7 +12,6 @@ class Restaurant(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'restaurants'
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    register_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     profile_id = sqlalchemy.Column(sqlalchemy.Integer)
     profile_image = sqlalchemy.Column(sqlalchemy.LargeBinary)
 
@@ -26,8 +25,8 @@ class Restaurant(SqlAlchemyBase, UserMixin, SerializerMixin):
     menu_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('menus.id'))
     menu = orm.relation('Menu')
 
-    places = orm.relation('RestaurantPlace', back_populates='restaurant', lazy='subquery')
-    orders = orm.relation('Order', back_populates='restaurant', lazy='subquery')
+    places = orm.relation('RestaurantPlace', back_populates='restaurant', lazy='subquery', cascade="all,delete", passive_deletes=True)
+    orders = orm.relation('Order', back_populates='restaurant', lazy='subquery', cascade="all,delete", passive_deletes=True)
 
     def set_password(self, password):
         self.password = generate_password_hash(password)

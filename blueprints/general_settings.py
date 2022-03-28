@@ -1,6 +1,6 @@
 import os
 
-from operations import abort_if_user
+from operations import abort_if_user, abort_if_restaurant
 
 from flask import Blueprint, redirect, render_template, request, make_response, abort, url_for
 from flask_login import login_required, login_user, logout_user, current_user
@@ -12,6 +12,7 @@ from forms.menu_item import MenuItemForm
 from forms.category import CategoryForm
 from forms.submit import SubmitForm
 from forms.restaurant_general_edit import RestaurantGeneralEditForm
+from forms.user_general_edit import UserGeneralEditForm
 
 from data.db_session import get_session
 
@@ -51,4 +52,46 @@ def restaurant_edit():
     form.redirect_after_send_order.data = current_user.redirect_after_send_order
     form.title.data = current_user.title
     response = render_template('form.html', title='Изменение ресторана', form=form)
+    return response
+
+
+@blueprint.route('/restaurant_delete', methods=['GET', 'POST'])
+@login_required
+def restaurant_delete():
+    abort_if_user()
+    form = SubmitForm()
+    if form.validate_on_submit():
+        get_session().delete(get_session().query(Restaurant).filter(Restaurant.id == current_user.id).first())
+        return redirect('/')
+    response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить аккаунт?')
+    return response
+
+
+# User edit
+@blueprint.route('/user_edit', methods=['GET', 'POST'])
+@login_required
+def user_edit():
+    abort_if_restaurant()
+    form = UserGeneralEditForm()
+    if form.validate_on_submit():
+        user = get_session().query(User).get(current_user.id)
+        user.name = form.name.data
+        user.surname = form.surname.data
+        get_session().commit()
+        return redirect('/settings/general')
+    form.name.data = current_user.name
+    form.surname.data = current_user.surname
+    response = render_template('form.html', title='Изменение пользователя', form=form)
+    return response
+
+
+@blueprint.route('/user_delete', methods=['GET', 'POST'])
+@login_required
+def user_delete():
+    abort_if_restaurant()
+    form = SubmitForm()
+    if form.validate_on_submit():
+        get_session().delete(get_session().query(User).filter(User.id == current_user.id).first())
+        return redirect('/')
+    response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить аккаунт?')
     return response

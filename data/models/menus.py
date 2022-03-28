@@ -12,5 +12,5 @@ class Menu(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     restaurant = orm.relation('Restaurant', back_populates='menu')
 
-    categories = orm.relation('Category', back_populates='menu', lazy='subquery')
-    items = orm.relation('MenuItem', back_populates='menu', lazy='subquery')
+    categories = orm.relation('Category', back_populates='menu', lazy='subquery', cascade="all,delete", passive_deletes=True)
+    items = orm.relation('MenuItem', back_populates='menu', lazy='subquery', cascade="all,delete", passive_deletes=True)
