@@ -28,6 +28,7 @@ from blueprints import order
 from data.models.profile_types import ProfileType
 from data.models.users import User
 from data.models.restaurants import Restaurant
+import views
 
 
 app = api.app
