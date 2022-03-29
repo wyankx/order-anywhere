@@ -114,7 +114,7 @@ def order_show(restaurant_id):
     if order == 'No places':
         return no_places()
     restaurant = get_session().query(Restaurant).get(restaurant_id)
-    return render_template('order_show.html', order=order, restaurant=restaurant, title='Заказ')
+    return render_template('order_show.html', order=order, restaurant=restaurant, title='Заказ', available_to_send=len(order['order_items']), error=request.args.get('error', None))
 
 
 @blueprint.route('/order/restaurant_place_connect', methods=['POST'])
@@ -132,9 +132,9 @@ def restaurant_place_connect():
 @login_required
 def restaurant_place_orders(restaurant_place_id):
     restaurant_place = get_session().query(RestaurantPlace).filter(RestaurantPlace.id == restaurant_place_id, RestaurantPlace.restaurant_id == current_user.id).first()
-    orders_in_progress = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'In progress').all()
-    orders_ready = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'Ready').all()
-    orders_awaiting_payment = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'Awaiting payment').all()
+    orders_in_progress = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'In progress').order_by(Order.id)
+    orders_ready = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'Ready').order_by(Order.id)
+    orders_awaiting_payment = get_session().query(Order).filter(Order.restaurant_place_id == restaurant_place_id, Order.state == 'Awaiting payment').order_by(Order.id)
     if not restaurant_place:
         abort(404)
     return render_template('restaurant_place_orders_show.html', restaurant_place=restaurant_place, orders_in_progress=orders_in_progress, orders_ready=orders_ready, orders_awaiting_payment=orders_awaiting_payment)
@@ -155,9 +155,8 @@ def set_order_state(order_id):
 @login_required
 def orders_show():
     abort_if_restaurant()
-    orders = get_session().query(Order).filter(Order.user_id == current_user.id).all()
+    orders = get_session().query(Order).filter(Order.user_id == current_user.id, Order.state != 'Is not sent').order_by(Order.id)
     order_states_translate = {
-        'Is not sent': 'Не отправлен',
         'Awaiting payment': 'Ожидает оплаты',
         'In progress': 'Готовится',
         'Ready': 'Готов',

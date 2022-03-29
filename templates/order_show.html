@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
+    {% if error %}
+        <div style="margin-left: 10vmin; margin-right: 10vmin; margin-top: 1rem">
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    {% endif %}
     <div class="d-flex" style="justify-content: space-between; align-items: center; margin-top: 1rem">
         <div style="justify-self: center; flex-grow: 1">
             <h1 style="text-align: center">{{ restaurant.title }}</h1>
@@ -40,11 +48,15 @@
             {% endfor %}
             <hr>
             <div class="d-flex" style="justify-content: space-between">
-                <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
-                    <input type="hidden" name="new_state" id="new_state" value="Awaiting payment">
-                    <input type="hidden" name="back_redir_to" id="back_redir_to" value="{% if restaurant.redirect_after_send_order %}{{ restaurant.redirect_after_send_order }}{% else %}{{ url_for('order.order_show', restaurant_id=restaurant.id) }}{% endif %}">
-                    <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Оплата">
-                </form>
+                {% if available_to_send %}
+                    <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
+                        <input type="hidden" name="new_state" id="new_state" value="Awaiting payment">
+                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{% if restaurant.redirect_after_send_order %}{{ restaurant.redirect_after_send_order }}{% else %}{{ url_for('order.order_show', restaurant_id=restaurant.id) }}{% endif %}">
+                        <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Оплата">
+                    </form>
+                {% else %}
+                    <input type="submit" id="submit" name="submit" class="btn btn-primary" disabled value="Оплата">
+                {% endif %}
                 <h3 style="margin-right: 12vw">Сумма: <span id="grand_total">{{ order.price }}</span></h3>
             </div>
         </div>

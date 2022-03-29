@@ -61,7 +61,8 @@ class MenuItemListResource(Resource):
         restaurant = get_session().query(Restaurant).get(restaurant_id)
         if not restaurant:
             abort(404)
-        response = jsonify({'categories': [category.to_dict(only=('id', 'title', 'menu_items.id', 'menu_items.title', 'menu_items.price')) for category in restaurant.menu.categories], 'restaurant': restaurant.to_dict(only=('id', 'title'))})
+        categories = get_session().query(Category).filter(Category.menu_id == restaurant.menu_id)
+        response = jsonify({'categories': [category.to_dict(only=('id', 'title', 'menu_items.id', 'menu_items.title', 'menu_items.price')) for category in categories.order_by(Category.id)], 'restaurant': restaurant.to_dict(only=('id', 'title'))})
         return response
 
     @login_required
@@ -181,7 +182,8 @@ class MenuCategoryListResource(Resource):
         restaurant = get_session().query(Restaurant).get(restaurant_id)
         if not restaurant:
             abort(404)
-        response = jsonify({'categories': [category.to_dict(only=('id', 'title', 'menu_items.id', 'menu_items.title', 'menu_items.price')) for category in restaurant.menu.categories], 'restaurant': restaurant.to_dict(only=('id', 'title'))})
+        categories = get_session().query(Category).filter(Category.menu_id == restaurant.menu_id)
+        response = jsonify({'categories': [category.to_dict(only=('id', 'title', 'menu_items.id', 'menu_items.title', 'menu_items.price')) for category in categories.order_by(Category.id)], 'restaurant': restaurant.to_dict(only=('id', 'title'))})
         return response
 
     @login_required
@@ -316,6 +318,8 @@ class OrderListResource(Resource):
 
         if current_user.__class__.__name__ == 'User':
             order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+            if not len(order.order_items):
+                return jsonify({'successfully': False, 'message': 'Empty order'})
             allowed_state = ['Awaiting payment']
         if current_user.__class__.__name__ == 'Restaurant':
             order = get_session().query(Order).filter(Order.id == order_id, Order.restaurant_id == current_user.id).first()
