@@ -19,6 +19,6 @@ blueprint = Blueprint(
 @login_required
 def search():
     abort_if_restaurant()
-    response_list = get_session().query(Restaurant).filter(Restaurant.title.like(f'%{request.args["search"]}%')).order_by(func.length(Restaurant.title)).limit(5)
+    response_list = get_session().query(Restaurant).filter(func.lower(Restaurant.title).like(f'%{request.args["search"].lower()}%')).order_by(func.length(Restaurant.title)).limit(10)
     response = render_template('search_response.html', response=list(response_list), title='Поиск ресторана')
     return response
