@@ -1,4 +1,5 @@
 # ORDER ANYWHERE
+## Для [Лицея Академии Яндекса](https://academy.yandex.ru/lyceum/)
 ## Веб-приложение для оформления заказов в ресторанах
 ### Создание меню: продуктов и категорий
 <img src="README_images/Редактирование%20меню.png" alt="Редактирование меню" width="500"><br>
@@ -9,6 +10,15 @@
 ### Создание и отслеживание заказов
 <img src="README_images/Создание%20заказа.png" alt="Создание заказа" width="500"><br>
 <img src="README_images/Отслеживание%20заказов.png" alt="Отслеживание заказов" width="500"><br>
+
+# Используемые технологии
+* Flask
+  * Flask SQLAlchemy с alembic
+  * Flask Login
+  * Flask WTF
+  * Flask SocketIO
+  * Flask RESTful
+* Requests
 
 # ТЗ
 * Сделать основу приложения
