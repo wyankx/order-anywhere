@@ -156,8 +156,9 @@ class MenuItemResource(Resource):
         menu_item.price = args['price']
         menu_item.category = get_session().query(Category).filter(Category.menu == current_user.menu, Category.title == args['category']).first()
         if args['item_image']:
-            f = request.files['item_image']
-            menu_item.item_image = f.read()
+            file_data = request.files['item_image'].read()
+            if file_data:
+                menu_item.item_image = file_data
         get_session().commit()
         return jsonify({'successfully': True})
 

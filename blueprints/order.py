@@ -114,7 +114,7 @@ def order_show(restaurant_id):
     if order == 'No places':
         return no_places()
     restaurant = get_session().query(Restaurant).get(restaurant_id)
-    return render_template('order_show.html', order=order, restaurant=restaurant, title='Заказ', available_to_send=len(order['order_items']), error=request.args.get('error', None))
+    return render_template('order_show.html', order=order, restaurant=restaurant, title='Заказ', available_to_send=len(order['order_items']), error=request.args.get('error', None), order_items=get_session().query(OrderItem).filter(OrderItem.order_id == order['id']).order_by(OrderItem.id))
 
 
 @blueprint.route('/order/restaurant_place_connect', methods=['POST'])

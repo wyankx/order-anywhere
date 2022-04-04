@@ -4,6 +4,7 @@ from flask import Blueprint, redirect, render_template, request
 from flask_login import login_required, current_user
 
 from data.db_session import get_session
+from data.models.profile_types import ProfileType
 from data.models.restaurants import Restaurant
 from data.models.users import User
 from forms.restaurant_general_edit import RestaurantGeneralEditForm
@@ -49,7 +50,11 @@ def restaurant_delete():
     abort_if_user()
     form = SubmitForm()
     if form.validate_on_submit():
-        get_session().delete(get_session().query(Restaurant).filter(Restaurant.id == current_user.id).first())
+        restaurant = get_session().query(Restaurant).filter(Restaurant.id == current_user.id).first()
+        profile = get_session().query(ProfileType).filter(ProfileType.id == restaurant.profile_id).first()
+        get_session().delete(restaurant)
+        get_session().delete(profile)
+        get_session().commit()
         return redirect('/')
     response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить аккаунт?')
     return response
@@ -79,7 +84,11 @@ def user_delete():
     abort_if_restaurant()
     form = SubmitForm()
     if form.validate_on_submit():
-        get_session().delete(get_session().query(User).filter(User.id == current_user.id).first())
+        user = get_session().query(User).filter(User.id == current_user.id).first()
+        profile = get_session().query(ProfileType).filter(ProfileType.id == user.profile_id).first()
+        get_session().delete(user)
+        get_session().delete(profile)
+        get_session().commit()
         return redirect('/')
     response = render_template('form.html', form=form, title='Подтверждение удаления', form_text=f'Вы уверены что хотите удалить аккаунт?')
     return response
