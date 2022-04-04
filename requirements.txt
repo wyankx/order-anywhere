@@ -1,0 +1,14 @@
+flask==2.0.3
+sqlalchemy==1.4.32
+flask-login==0.5.0
+flask-wtf==1.0.0
+alembic==1.7.7
+SQLAlchemy-serializer==1.4.1
+python-dotenv==0.19.2
+psycopg2-binary==2.9.3
+Werkzeug==2.0.3
+WTForms==3.0.1
+config==0.5.1
+flask-restful==0.3.9
+requests==2.27.1
+flask-socketio==5.1.1

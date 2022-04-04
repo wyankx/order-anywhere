@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if current_user.is_authenticated %}
+        {% if current_user.__class__.__name__ == 'User' %}
+            <br>
+            <h1 style="font-family: Panton, serif; margin-left: 2rem;">Для покупателей</h1>
+            <div style="margin-left: 5rem;">
+                <h2 style="font-family: Panton, serif">Ищите рестораны и делайте заказы</h2>
+                <h3>На нашем сайте можно делать заказы в любые рестораны, в любом месте.<br>Вы можете выбрать организацию в которую хотите направить ваш заказ.</h3>
+            </div>
+            <br>
+            <div style="margin-left: 5rem;">
+                <h2 style="font-family: Panton, serif">Легкость в создании заказа</h2>
+                <h3>Удобное меню и управление корзиной.<br>Все продукты разделены на категории.</h3>
+            </div>
+        {% elif current_user.__class__.__name__ == 'Restaurant' %}
+            <h1 style="text-align: center">Просмотр и изменение заказов</h1>
+            <form action="/order/restaurant_place_connect" method="post" class="d-flex" style="justify-content: center" enctype="multipart/form-data">
+                <select required id="restaurant_place_id" name="restaurant_place_id" class="form-select" style="width: 15rem; margin-right: 3rem">
+                    {% for place in restaurant.places %}
+                        <option value="{{ place.id }}"{% if loop.first %} selected{% endif %}>{{ place.title }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" class="btn btn-outline-primary" id="submit" name="submit" value="Подключится">
+            </form><hr>
+        {% endif %}
+    {% else %}
+        <br>
+        <h1 style="font-family: Panton, serif; margin-left: 2rem;">Для покупателей</h1>
+        <div style="margin-left: 5rem;">
+            <h2 style="font-family: Panton, serif">Ищите рестораны и делайте заказы</h2>
+            <h3>На нашем сайте можно делать заказы в любые рестораны, в любом месте.<br>Вы можете выбрать организацию в которую хотите направить ваш заказ.</h3>
+        </div>
+        <br>
+        <div style="margin-left: 5rem;">
+            <h2 style="font-family: Panton, serif">Легкость в создании заказа</h2>
+            <h3>Удобное меню и управление корзиной.<br>Все продукты разделены на категории.</h3>
+        </div>
+        <hr>
+        <br>
+        <h1 style="font-family: Panton, serif; margin-left: 2rem;">Для ресторанов</h1>
+        <div style="margin-left: 5rem;">
+            <h2 style="font-family: Panton, serif">Создание и редактирование меню</h2>
+            <h3>Вы можете управлять категориями и продуктами. Поставить логотип вашего ресторана и добавить картинку продукту.</h3>
+        </div>
+        <br>
+        <div style="margin-left: 5rem;">
+            <h2 style="font-family: Panton, serif">Принятие заказов и управление</h2>
+            <h3>Вы можете создать несколько организаций в которые вам будут приходить заказы.<br>Вы можете легко управлять заказами и задавать им различные состояния.</h3>
+        </div>
+        <br><hr><br><br><br>
+        <h1 style="font-family: Panton, serif; margin-left: 2rem;">ПРИМЕЧАНИЕ!!!</h1>
+        <div style="margin-left: 5rem;">
+            <h4>На данный момент оплата на сайте не предусмотрена ввиду того что для добавления оплаты нужно регистрировать ИП, а данный проект создан в целях обучения.<br>
+            Но вы можете самостоятельно добавить оплату на сайт с помощью нашего API и добавления ссылки на которую нужно перенаправить пользователя после отправки заказа, либо же можно принимать оплату прямо в ресторане.</h4>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div style="margin-left: 10vmin; margin-right: 10vmin; margin-top: 1rem">
+        {% if error %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ error }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+        <ul class="nav nav-tabs" style="justify-content: center">
+            {% for setting_name in setting_names.keys() %}
+                <li class="nav-item">
+                    {% if setting_name == current_setting %}
+                        <a href="/settings/{{ setting_name }}" class="nav-link active" aria-current="page">{{ setting_names[setting_name] }}</a>
+                    {% else %}
+                        <a href="/settings/{{ setting_name }}" class="nav-link">{{ setting_names[setting_name] }}</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+        <div class="card">
+            <div class="card-body">
+                {% for item in settings[current_setting] %}
+                    {% if item.title %}
+                        <h1>{{ item.title }}</h1>
+                    {% endif %}
+                    {% if item.type == 'Form' %}
+                        {% set form = item.form %}
+                        <form action="{{ item.form_handler_url }}" method="post" novalidate enctype="multipart/form-data">
+                            <div>
+                                {{ form.hidden_tag() }}
+                            </div>
+                            {% if form_text %}
+                                <h4 style="text-align: center;">{{ form_text }}</h4>
+                            {% endif %}
+                            {% if errors %}
+                                {% for error in errors %}
+                                    <div class="alert alert-danger" role="alert">
+                                        {{ error }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                            {% for field in form if field.name not in ['csrf_token', 'submit'] %}
+                                <div>
+                                    {{ field.label() }}
+                                    {{ field() }}
+                                    {% for error in field.errors %}
+                                        <div class="alert alert-danger" role="alert">
+                                            {{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div><br>
+                            {% endfor %}
+                            {{ form.submit() }}
+                            {% if additional_link %}
+                                <a class="alert-link" href="{{ additional_link.link }}">{{ additional_link.label }}</a>
+                            {% endif %}
+                        </form>
+                    {% endif %}
+                    {% if item.type == 'html_markup' %}
+                        {{ item.html_markup|safe }}
+                    {% endif %}
+                    <hr>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
