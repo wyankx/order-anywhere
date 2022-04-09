@@ -1,14 +1,10 @@
-import os
-import datetime
-
-from flask import make_response, Flask, jsonify, redirect, request
+from flask import make_response, jsonify, redirect, request
 from flask_login import login_required, current_user
 
-from flask_restful import reqparse, abort, Api, Resource
+from flask_restful import reqparse, abort, Resource, Api
 import werkzeug
 
 from data.db_session import get_session
-from flask_socketio import SocketIO
 
 from operations import abort_if_restaurant, abort_if_user
 
@@ -19,18 +15,10 @@ from data.models.categories import Category
 from data.models.orders import Order
 from data.models.order_items import OrderItem
 from data.models.restaurant_places import RestaurantPlace
+from main import app
 
-app = Flask(__name__)
+
 api = Api(app)
-
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-print(f' * SECRET_KEY: {os.environ.get("SECRET_KEY")}')
-app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
-    days=365
-)
-app.config['SQLALCHEMY_POOL_SIZE'] = 20
-
-socketio = SocketIO(app, async_mode='threading')
 
 
 # Images
@@ -284,12 +272,6 @@ class MenuCategoryResource(Resource):
         return jsonify({'successfully': True})
 
 
-api.add_resource(MenuItemListResource, '/api/menu/<int:restaurant_id>')
-api.add_resource(MenuItemResource, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
-api.add_resource(MenuCategoryListResource, '/api/menu/<int:restaurant_id>/categories')
-api.add_resource(MenuCategoryResource, '/api/menu/<int:restaurant_id>/category/<int:category_id>')
-
-
 # Order
 def update_order_price(order_id):
     order = get_session().query(Order).get(order_id)
@@ -385,7 +367,3 @@ class OrderItemResource(Resource):
         get_session().commit()
         update_order_price(order_id)
         return jsonify({'successfully': True})
-
-
-api.add_resource(OrderListResource, '/api/order/<int:order_id>')
-api.add_resource(OrderItemResource, '/api/order/<int:order_id>/<int:order_item_id>')
