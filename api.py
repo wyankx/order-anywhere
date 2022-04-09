@@ -1,4 +1,4 @@
-from flask import make_response, jsonify, redirect, request
+from flask import jsonify, request
 from flask_login import login_required, current_user
 
 from flask_restful import reqparse, abort, Resource
@@ -15,7 +15,7 @@ from data.models.categories import Category
 from data.models.orders import Order
 from data.models.order_items import OrderItem
 from data.models.restaurant_places import RestaurantPlace
-from main import api, socketio
+from setup import socketio
 
 
 # Menu
@@ -288,7 +288,8 @@ class OrderListResource(Resource):
         if args['new_state'] not in allowed_state:
             abort(403)
 
-        socketio.emit('order_change', {'order_id': order_id}, room=str(order.restaurant_place_id), namespace='/')
+        socketio.emit('order_change', {'order_id': order_id}, room=f'restaurant_{str(order.restaurant_place_id)}', namespace='/')
+        socketio.emit('order_change', {'order_id': order_id}, room=f'user_{str(order.user_id)}', namespace='/')
 
         order.state = args['new_state']
         get_session().commit()

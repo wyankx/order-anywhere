@@ -155,7 +155,7 @@ def set_order_state(order_id):
 @login_required
 def orders_show():
     abort_if_restaurant()
-    orders = get_session().query(Order).filter(Order.user_id == current_user.id, Order.state != 'Is not sent').order_by(Order.id)
+    orders = get_session().query(Order).filter(Order.user_id == current_user.id, Order.state != 'Is not sent').order_by(-Order.id)
     order_states_translate = {
         'Awaiting payment': 'Ожидает оплаты',
         'In progress': 'Готовится',

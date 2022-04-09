@@ -51,7 +51,7 @@
                 {% if available_to_send %}
                     <form method="post" action="/order/{{ order.id }}/set_state" enctype="multipart/form-data">
                         <input type="hidden" name="new_state" id="new_state" value="Awaiting payment">
-                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{% if restaurant.redirect_after_send_order %}{{ restaurant.redirect_after_send_order }}{% else %}{{ url_for('order.order_show', restaurant_id=restaurant.id) }}{% endif %}">
+                        <input type="hidden" name="back_redir_to" id="back_redir_to" value="{% if restaurant.redirect_after_send_order %}{{ restaurant.redirect_after_send_order }}{% else %}{{ url_for('order.orders_show', restaurant_id=restaurant.id) }}{% endif %}">
                         <input type="submit" id="submit" name="submit" class="btn btn-primary" value="Оплата">
                     </form>
                 {% else %}

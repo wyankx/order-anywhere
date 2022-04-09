@@ -75,7 +75,6 @@
             var socket = io.connect(window.location.origin)
 
             socket.on('connect', function () {
-                console.log(window.location.pathname)
                 let restaurant_place_id = window.location.pathname.split('/')[window.location.pathname.split('/').length - 1]
                 socket.emit("restaurant_place_connect", {"restaurant_place_id": restaurant_place_id});
             })
