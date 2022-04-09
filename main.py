@@ -1,13 +1,17 @@
 import os
 import datetime
 
-from flask import Flask, render_template, make_response
+from flask import Flask, render_template, make_response, redirect
 from flask_login import LoginManager, current_user
+from flask_restful import Api
 
 from data import db_session
 
 # Will not work on Heroku, but needed for tests
 from dotenv import load_dotenv
+
+from data.models.menu_items import MenuItem
+
 dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(dotenv_path):
     load_dotenv(dotenv_path)
@@ -33,6 +37,7 @@ import views
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
+api = Api(app)
 
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 print(f' * SECRET_KEY: {os.environ.get("SECRET_KEY")}')
@@ -46,12 +51,33 @@ socketio = SocketIO(app, async_mode='threading')
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-import api
+import api as api_file
 
 
 @app.teardown_appcontext
 def shutdown_session(exception=None):
     get_session().remove()
+
+
+# Images
+@app.route('/menu_item_image/<int:menu_item_id>')
+def menu_item_image(menu_item_id):
+    image_binary = get_session().query(MenuItem).get(menu_item_id).item_image
+    if not image_binary:
+        return redirect('/static/no_image/item.png')
+    response = make_response(image_binary)
+    response.headers.set('Content-Type', 'image/jpeg')
+    return response
+
+
+@app.route('/restaurant_image/<int:restaurant_id>')
+def restaurant_image(restaurant_id):
+    image_binary = get_session().query(Restaurant).get(restaurant_id).profile_image
+    if not image_binary:
+        return redirect('/static/no_image/profile.png')
+    response = make_response(image_binary)
+    response.headers.set('Content-Type', 'image/jpeg')
+    return response
 
 
 # Error handlers
@@ -94,12 +120,12 @@ def main_page():
 
 if __name__ == '__main__':
     # Add API resources
-    api.api.add_resource(api.MenuItemListResource, '/api/menu/<int:restaurant_id>')
-    api.api.add_resource(api.MenuItemResource, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
-    api.api.add_resource(api.MenuCategoryListResource, '/api/menu/<int:restaurant_id>/categories')
-    api.api.add_resource(api.MenuCategoryResource, '/api/menu/<int:restaurant_id>/category/<int:category_id>')
-    api.api.add_resource(api.OrderListResource, '/api/order/<int:order_id>')
-    api.api.add_resource(api.OrderItemResource, '/api/order/<int:order_id>/<int:order_item_id>')
+    api.add_resource(api_file.MenuItemListResource, '/api/menu/<int:restaurant_id>')
+    api.add_resource(api_file.MenuItemResource, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
+    api.add_resource(api_file.MenuCategoryListResource, '/api/menu/<int:restaurant_id>/categories')
+    api.add_resource(api_file.MenuCategoryResource, '/api/menu/<int:restaurant_id>/category/<int:category_id>')
+    api.add_resource(api_file.OrderListResource, '/api/order/<int:order_id>')
+    api.add_resource(api_file.OrderItemResource, '/api/order/<int:order_id>/<int:order_item_id>')
 
     # Register blueprints
     app.register_blueprint(accounts.blueprint)

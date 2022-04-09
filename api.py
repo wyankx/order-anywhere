@@ -1,7 +1,7 @@
 from flask import make_response, jsonify, redirect, request
 from flask_login import login_required, current_user
 
-from flask_restful import reqparse, abort, Resource, Api
+from flask_restful import reqparse, abort, Resource
 import werkzeug
 
 from data.db_session import get_session
@@ -15,32 +15,7 @@ from data.models.categories import Category
 from data.models.orders import Order
 from data.models.order_items import OrderItem
 from data.models.restaurant_places import RestaurantPlace
-from main import app, socketio
-
-
-api = Api(app)
-
-
-# Images
-@app.route('/menu_item_image/<int:menu_item_id>')
-def menu_item_image(menu_item_id):
-    image_binary = get_session().query(MenuItem).get(menu_item_id).item_image
-    print(f'IMAGE LOAD: menu_item_id: {menu_item_id}')
-    if not image_binary:
-        return redirect('/static/no_image/item.png')
-    response = make_response(image_binary)
-    response.headers.set('Content-Type', 'image/jpeg')
-    return response
-
-
-@app.route('/restaurant_image/<int:restaurant_id>')
-def restaurant_image(restaurant_id):
-    image_binary = get_session().query(Restaurant).get(restaurant_id).profile_image
-    if not image_binary:
-        return redirect('/static/no_image/profile.png')
-    response = make_response(image_binary)
-    response.headers.set('Content-Type', 'image/jpeg')
-    return response
+from main import api, socketio
 
 
 # Menu
