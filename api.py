@@ -15,7 +15,7 @@ from data.models.categories import Category
 from data.models.orders import Order
 from data.models.order_items import OrderItem
 from data.models.restaurant_places import RestaurantPlace
-from main import app
+from main import app, socketio
 
 
 api = Api(app)
