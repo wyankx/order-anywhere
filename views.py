@@ -1,7 +1,7 @@
-from flask import abort, request
+from flask import abort
 from flask_login import login_required, current_user
 from flask_socketio import join_room
-from api import socketio
+from main import socketio
 from data.db_session import get_session
 from data.models.restaurant_places import RestaurantPlace
 from operations import abort_if_user

@@ -1,6 +1,7 @@
 import os
+import datetime
 
-from flask import render_template, make_response
+from flask import Flask, render_template, make_response
 from flask_login import LoginManager, current_user
 
 from data import db_session
@@ -16,7 +17,6 @@ if __name__ == '__main__':
 
 from data.db_session import get_session
 
-import api
 from blueprints import settings
 from blueprints import accounts
 from blueprints import organisations_settings
@@ -30,12 +30,23 @@ from data.models.users import User
 from data.models.restaurants import Restaurant
 import views
 
+from flask_socketio import SocketIO
 
-app = api.app
-socketio = api.socketio
+app = Flask(__name__)
+
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
+print(f' * SECRET_KEY: {os.environ.get("SECRET_KEY")}')
+app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
+    days=365
+)
+app.config['SQLALCHEMY_POOL_SIZE'] = 20
+
+socketio = SocketIO(app, async_mode='threading')
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+import api
 
 
 @app.teardown_appcontext
@@ -45,7 +56,7 @@ def shutdown_session(exception=None):
 
 # Error handlers
 @app.errorhandler(401)
-def forbidden_error(error):
+def unauthorized_error(error):
     return make_response(render_template('show_error_text.html', title='Вы не авторизованы'), 403)
 
 
@@ -82,6 +93,15 @@ def main_page():
 
 
 if __name__ == '__main__':
+    # Add API resources
+    api.api.add_resource(api.MenuItemListResource, '/api/menu/<int:restaurant_id>')
+    api.api.add_resource(api.MenuItemResource, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
+    api.api.add_resource(api.MenuCategoryListResource, '/api/menu/<int:restaurant_id>/categories')
+    api.api.add_resource(api.MenuCategoryResource, '/api/menu/<int:restaurant_id>/category/<int:category_id>')
+    api.api.add_resource(api.OrderListResource, '/api/order/<int:order_id>')
+    api.api.add_resource(api.OrderItemResource, '/api/order/<int:order_id>/<int:order_item_id>')
+
+    # Register blueprints
     app.register_blueprint(accounts.blueprint)
     app.register_blueprint(settings.blueprint)
     app.register_blueprint(organisations_settings.blueprint)
