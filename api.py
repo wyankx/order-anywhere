@@ -1,14 +1,10 @@
-import os
-import datetime
-
-from flask import make_response, Flask, jsonify, redirect, request
+from flask import jsonify, request
 from flask_login import login_required, current_user
 
-from flask_restful import reqparse, abort, Api, Resource
+from flask_restful import reqparse, abort, Resource
 import werkzeug
 
 from data.db_session import get_session
-from flask_socketio import SocketIO
 
 from operations import abort_if_restaurant, abort_if_user
 
@@ -19,40 +15,7 @@ from data.models.categories import Category
 from data.models.orders import Order
 from data.models.order_items import OrderItem
 from data.models.restaurant_places import RestaurantPlace
-
-app = Flask(__name__)
-api = Api(app)
-
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
-print(f' * SECRET_KEY: {os.environ.get("SECRET_KEY")}')
-app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(
-    days=365
-)
-app.config['SQLALCHEMY_POOL_SIZE'] = 20
-
-socketio = SocketIO(app, async_mode='threading')
-
-
-# Images
-@app.route('/menu_item_image/<int:menu_item_id>')
-def menu_item_image(menu_item_id):
-    image_binary = get_session().query(MenuItem).get(menu_item_id).item_image
-    print(f'IMAGE LOAD: menu_item_id: {menu_item_id}')
-    if not image_binary:
-        return redirect('/static/no_image/item.png')
-    response = make_response(image_binary)
-    response.headers.set('Content-Type', 'image/jpeg')
-    return response
-
-
-@app.route('/restaurant_image/<int:restaurant_id>')
-def restaurant_image(restaurant_id):
-    image_binary = get_session().query(Restaurant).get(restaurant_id).profile_image
-    if not image_binary:
-        return redirect('/static/no_image/profile.png')
-    response = make_response(image_binary)
-    response.headers.set('Content-Type', 'image/jpeg')
-    return response
+from setup import socketio
 
 
 # Menu
@@ -284,12 +247,6 @@ class MenuCategoryResource(Resource):
         return jsonify({'successfully': True})
 
 
-api.add_resource(MenuItemListResource, '/api/menu/<int:restaurant_id>')
-api.add_resource(MenuItemResource, '/api/menu/<int:restaurant_id>/item/<int:menu_item_id>')
-api.add_resource(MenuCategoryListResource, '/api/menu/<int:restaurant_id>/categories')
-api.add_resource(MenuCategoryResource, '/api/menu/<int:restaurant_id>/category/<int:category_id>')
-
-
 # Order
 def update_order_price(order_id):
     order = get_session().query(Order).get(order_id)
@@ -331,7 +288,8 @@ class OrderListResource(Resource):
         if args['new_state'] not in allowed_state:
             abort(403)
 
-        socketio.emit('order_change', {'order_id': order_id}, room=str(order.restaurant_place_id), namespace='/')
+        socketio.emit('order_change', {'order_id': order_id}, room=f'restaurant_{str(order.restaurant_place_id)}', namespace='/')
+        socketio.emit('order_change', {'order_id': order_id}, room=f'user_{str(order.user_id)}', namespace='/')
 
         order.state = args['new_state']
         get_session().commit()
@@ -344,7 +302,7 @@ class OrderListResource(Resource):
         parser.add_argument('restaurant_place_id', required=True, type=int, location='values')
         args = parser.parse_args()
 
-        order = get_session().query(Order).filter(Order.id == order_id).first()
+        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id, Order.state == 'Is not sent').first()
         if not order:
             abort(404)
         if order.user_id != current_user.id:
@@ -359,13 +317,13 @@ class OrderListResource(Resource):
 
 class OrderItemResource(Resource):
     @login_required
-    def put(self, order_id, order_item_id):  # Put for user
+    def put(self, order_id, order_item_id):
         abort_if_restaurant()
         parser = reqparse.RequestParser()
         parser.add_argument('count', required=True, type=int, location='values')
         args = parser.parse_args()
 
-        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id, Order.state == 'Is not sent').first()
         if not order:
             abort(404)
         order_item = get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first()
@@ -376,16 +334,13 @@ class OrderItemResource(Resource):
         update_order_price(order_id)
         return jsonify({'successfully': True})
 
+    @login_required
     def delete(self, order_id, order_item_id):
         abort_if_restaurant()
-        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id, Order.state == 'Is not sent').first()
         if not order:
             abort(404)
         get_session().delete(get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first())
         get_session().commit()
         update_order_price(order_id)
         return jsonify({'successfully': True})
-
-
-api.add_resource(OrderListResource, '/api/order/<int:order_id>')
-api.add_resource(OrderItemResource, '/api/order/<int:order_id>/<int:order_item_id>')
