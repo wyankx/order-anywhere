@@ -302,7 +302,7 @@ class OrderListResource(Resource):
         parser.add_argument('restaurant_place_id', required=True, type=int, location='values')
         args = parser.parse_args()
 
-        order = get_session().query(Order).filter(Order.id == order_id).first()
+        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id, Order.state == 'Is not sent').first()
         if not order:
             abort(404)
         if order.user_id != current_user.id:
@@ -317,13 +317,13 @@ class OrderListResource(Resource):
 
 class OrderItemResource(Resource):
     @login_required
-    def put(self, order_id, order_item_id):  # Put for user
+    def put(self, order_id, order_item_id):
         abort_if_restaurant()
         parser = reqparse.RequestParser()
         parser.add_argument('count', required=True, type=int, location='values')
         args = parser.parse_args()
 
-        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id, Order.state == 'Is not sent').first()
         if not order:
             abort(404)
         order_item = get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first()
@@ -334,9 +334,10 @@ class OrderItemResource(Resource):
         update_order_price(order_id)
         return jsonify({'successfully': True})
 
+    @login_required
     def delete(self, order_id, order_item_id):
         abort_if_restaurant()
-        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id).first()
+        order = get_session().query(Order).filter(Order.id == order_id, Order.user_id == current_user.id, Order.state == 'Is not sent').first()
         if not order:
             abort(404)
         get_session().delete(get_session().query(OrderItem).filter(OrderItem.id == order_item_id, OrderItem.order_id == order.id).first())
